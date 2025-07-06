@@ -49,7 +49,7 @@ function App() {
             <Route path='/StaffMember' element={<PrivateComponent>
               <StaffMemberPage/>
             </PrivateComponent>}></Route>
-            <Route path='*' element={<PrivateComponent>
+            <Route path='/*' element={<PrivateComponent>
               <NotFoundPage/>
             </PrivateComponent>}></Route>
         </Routes>

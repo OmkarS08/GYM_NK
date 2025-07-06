@@ -1,0 +1,69 @@
+CREATE TABLE `activitylog` (
+  `activity_id` int(11) NOT NULL AUTO_INCREMENT,
+  `activity_user_id` int(11) NOT NULL,
+  `activity` varchar(150) NOT NULL,
+  `time_stamp` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`activity_id`),
+  KEY `activity_user_id` (`activity_user_id`),
+  CONSTRAINT `activity_user_id` FOREIGN KEY (`activity_user_id`) REFERENCES `login` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=389 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+
+CREATE TABLE `login` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` text NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `admin` tinyint(1) NOT NULL DEFAULT 0,
+  `delete_flag_login` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+
+CREATE TABLE `members` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `age` int(11) NOT NULL,
+  `gender` text NOT NULL,
+  `mobile` varchar(20) NOT NULL,
+  `package` int(11) NOT NULL,
+  `startDate` date NOT NULL,
+  `endDate` date NOT NULL,
+  `member_transaction` int(11) DEFAULT NULL,
+  `paymentMethod` varchar(15) DEFAULT NULL,
+  `member_steam` int(11) DEFAULT NULL,
+  `Delete_flag` tinyint(1) NOT NULL DEFAULT 0,
+  `member_time_stamp` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=102 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+
+
+CREATE TABLE `package` (
+  `package_id` int(11) NOT NULL AUTO_INCREMENT,
+  `packageMonth` int(11) NOT NULL,
+  `packagePrice` int(11) NOT NULL,
+  PRIMARY KEY (`package_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+
+CREATE TABLE `steam` (
+  `steam_id` int(11) NOT NULL AUTO_INCREMENT,
+  `Steam_members` varchar(255) NOT NULL,
+  `Steam_date` date NOT NULL,
+  `Steam_time` time NOT NULL,
+  `steam_delete_flag` tinyint(4) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`steam_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+
+CREATE TABLE `transaction` (
+  `transaction_id` int(11) NOT NULL AUTO_INCREMENT,
+  `transaction_person_name` int(15) NOT NULL,
+  `transaction_package_amount` int(100) NOT NULL,
+  `transaction_amount_paid` int(100) NOT NULL,
+  `transaction_amount_due` int(11) DEFAULT NULL,
+  `transaction_time_stamp` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`transaction_id`),
+  KEY `tans_mem_id` (`transaction_person_name`),
+  CONSTRAINT `tans_mem_id` FOREIGN KEY (`transaction_person_name`) REFERENCES `members` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+
+INSERT INTO `login`(`username`, `password`, `admin`) VALUES ('omkar@08','$2a$10$KKBoFglcuCA.5akS/77GZuyMTV/1ZDzuvIVcAWxCyoaTYtP9lMa0K' ,1 );
+
+//omkar@08
+//omi@08

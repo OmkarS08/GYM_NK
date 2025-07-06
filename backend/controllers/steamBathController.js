@@ -1,51 +1,64 @@
-const db = require('../config/db');
+const db = require('../config/firebaseConfig');
 
+// Add a new steam bath entry
+const addSteamBath = async (req, res) => {
+    const { members, date, time } = req.body;
+    try {
+        const membersString = Array.isArray(members) ? members.join(', ') : members;
+        await db.collection('steam').add({
+            Steam_members: membersString,
+            Steam_date: date,
+            Steam_time: time,
+            steam_delete_flag: 0,
+            createdAt: new Date()
+        });
+        return res.json("Success");
+    } catch (err) {
+        return res.status(500).json({ message: "Error in Backend", error: err.message });
+    }
+};
 
-const addSteamBath = (req, res) => {
-   const { members, date, time } = req.body;
- 
-   // Join the members array into a single string separated by commas or any delimiter
-   const membersString = members.join(', ');
- 
-   // Insert the membersString into the database along with the date and time
-   const sql = `INSERT INTO steam (Steam_members, Steam_date, Steam_time) VALUES (?, ?, ?)`;
-   db.query(sql, [membersString, date, time], (err, data) => {
-     if (err) {
-       console.error("Error inserting data:", err);
-       return res.status(500).json(`Error in Backend: ${err}`);
-     } else {
-       return res.json("Success");
-     }
-   });
- };
- 
+// Get all steam bath entries (excluding deleted)
+const getSteamData = async (req, res) => {
+    try {
+        const snapshot = await db.collection('steam')
+            .where('steam_delete_flag', '!=', 1)
+            .orderBy('Steam_date', 'asc')
+            .get();
+        const steamData = snapshot.docs.map(doc => {
+            const data = doc.data();
+            // Format date as dd-MMM-yyyy
+            let formattedDate = '';
+            if (data.Steam_date) {
+                const dateObj = new Date(data.Steam_date);
+                formattedDate = dateObj.toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                }).replace(/ /g, '-');
+            }
+            return {
+                steam_id: doc.id,
+                Steam_members: data.Steam_members,
+                Steam_date: formattedDate,
+                Steam_time: data.Steam_time
+            };
+        });
+        return res.json(steamData);
+    } catch (err) {
+        return res.status(500).json({ message: "Error in Backend", error: err.message });
+    }
+};
 
-const getSteamData = (req,res)=>{
+// Soft delete a steam bath entry
+const deleteSteam = async (req, res) => {
+    const id = req.params.id;
+    try {
+        await db.collection('steam').doc(id).update({ steam_delete_flag: 1 });
+        return res.json({ message: "Steam entry deleted successfully" });
+    } catch (err) {
+        return res.status(500).json({ message: "Error in Backend", error: err.message });
+    }
+};
 
-   const sql = `SELECT steam_id, Steam_members, DATE_FORMAT(Steam_date, '%d-%M-%Y') as Steam_date, Steam_time FROM steam WHERE steam_delete_flag!= 1
-      ORDER BY Steam_date ASC`;
-
-   db.query(sql,(err,data)=>{
-      if (err) {
-         return res.json(`Error in Backend + ${err}`);
-     }
-     else {
-         return res.json(data);
-     }
-   })
-}
-
-const deleteSteam = (req,res)=>{
-   const id = req.params.id;
-   const sql = `UPDATE steam SET steam_delete_flag = '1' WHERE steam_id =${id}`;
-   db.query(sql, (err, data) => {
-       if (err) {
-           return res.json("Error in backedn");
-       }
-       else {
-           return res.json(data);
-       }
-   })
-}
-
-module.exports={addSteamBath,getSteamData,deleteSteam};
+module.exports = { addSteamBath, getSteamData, deleteSteam };

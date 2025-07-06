@@ -1,25 +1,44 @@
-const db = require('../config/db');
+const db = require('../config/firebaseConfig');
 
-const Activity = (req,res) =>{
-   
+// Log an activity
+const Activity = async (req, res) => {
     const { user_id, activity } = req.body;
-
-    const sql = 'INSERT INTO activitylog (activity_user_id, activity) VALUES (?, ?)';
-    db.query(sql, [user_id, activity], (err, results) => {
-        if (err) return res.status(500).send(err);
+    try {
+        await db.collection('activityLog').add({
+            activity_user_id: user_id,
+            activity,
+            time_stamp: new Date()
+        });
         res.status(200).send('Activity logged successfully');
-    });
-}
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+};
 
-const getActivity = (req,res) =>{
-    const sql = `SELECT activity_id,activity, DATE_FORMAT(activitylog.time_stamp, '%Y-%m-%d %H:%i:%s') as time_stamp,login.username 
-    FROM activitylog JOIN login ON activitylog.activity_user_id = login.id 
-    ORDER BY activitylog.time_stamp DESC`
-    db.query(sql,(err,result)=>{
-        if(err) return res.status(500).send(err);
-        res.status(200).send(result);
-    })
-}
+// Get all activities with user email
+const getActivity = async (req, res) => {
+    try {
+        const activitySnap = await db.collection('activityLog').orderBy('time_stamp', 'desc').get();
+        const userSnap = await db.collection('adminUser').get();
+        const users = {};
+        userSnap.docs.forEach(doc => {
+            users[doc.id] = doc.data();
+        });
 
+        const activities = activitySnap.docs.map(doc => {
+            const a = doc.data();
+            const user = users[a.activity_user_id] || {};
+            return {
+                activity_id: doc.id,
+                activity: a.activity,
+                time_stamp: a.time_stamp?.toDate ? a.time_stamp.toDate().toISOString().slice(0, 19).replace('T', ' ') : '',
+                username: user.email || ''
+            };
+        });
+        res.status(200).send(activities);
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+};
 
-module.exports = {Activity, getActivity}
+module.exports = { Activity, getActivity };

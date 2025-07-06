@@ -1,147 +1,180 @@
-const db = require('../config/db');
-const calculateEndDate = require('../utils/dateUtil')
+const db = require('../config/firebaseConfig');
+const calculateEndDate = require('../utils/dateUtil');
 const { format } = require('date-fns');
 
-const addMember = (req, res) => {
-    const { name, age, package, startDate, gender, mobile, payment } = req.body
-    const endDate = calculateEndDate(startDate, Number(package))
-    const sql = 'INSERT INTO `members` (`name`, `age`, `gender`, `mobile`, `package`, `startDate`, `endDate`,`paymentMethod`, `delete_flag`) VALUES (?, ?, ?, ?, ?, ?, ? ,?, 0) '
-    db.query(sql, [name, age, gender, mobile, package, startDate, endDate, payment], (err, data) => {
-        if (err) {
-            return res.json("Error");
-        }
-        else {
-            const newMemberId = data.insertId;
+// Add a new member
+const addMember = async (req, res) => {
+    const { name, age, package: packageMonth, startDate, gender, mobile, payment, aadhar, profilePicUrl, aadharFrontUrl, aadharBackUrl } = req.body;
+    try {
+        const endDate = calculateEndDate(startDate, Number(packageMonth));
+        const newMember = {
+            name,
+            age,
+            gender,
+            mobile,
+            package: packageMonth,
+            startDate,
+            endDate,
+            paymentMethod: payment,
+            aadhar,
+            profilePicUrl,   // <-- store profile photo URL
+            aadharFrontUrl,
+            aadharBackUrl,
+            delete_flag: 0,
+            createdAt: new Date()
+        };
+        const docRef = await db.collection('gymMembers').add(newMember);
+        return res.json({ message: "Success", memberId: docRef.id });
+    } catch (err) {
+        return res.status(500).json({ message: "Error", error: err.message });
+    }
+};
 
-            return res.json({ message: "Success", memberId: newMemberId });
-        }
-    })
-}
-
-const deleteMember = (req, res) => {
+// Soft delete a member
+const deleteMember = async (req, res) => {
     const id = req.params.id;
-    const sql = `UPDATE members SET delete_flag = '1' WHERE id =${id}`;
-    db.query(sql, (err, data) => {
-        if (err) return res.json("Error");
+    try {
+        await db.collection('gymMembers').doc(id).update({ delete_flag: 1 });
         return res.json("Success");
-    });
-}
+    } catch (err) {
+        return res.status(500).json("Error");
+    }
+};
 
-const getMember = (req, res) => {
-    const sql = `SELECT 
-    m.id, 
-    m.name, 
-    m.age, 
-    m.gender, 
-    DATE_FORMAT(m.endDate, '%d-%M-%Y') AS endDate,
-    m.mobile, 
-    DATE_FORMAT(m.startDate, '%d-%M-%Y') AS startDate1,
-    DATE_FORMAT(m.startDate, '%Y-%m-%d') AS startDate,
-    m.paymentMethod, 
-    m.package,
-    t.transaction_id, 
-    t.transaction_package_amount, 
-    t.transaction_amount_paid, 
-    t.transaction_amount_due 
-FROM 
-    members m
-JOIN 
-    transaction t ON m.id = t.transaction_person_name
-WHERE 
-    m.Delete_flag != '1'
-ORDER BY 
-    m.member_time_stamp DESC `
+// Get all members (excluding deleted)
+const getMember = async (req, res) => {
+    try {
+        const snapshot = await db.collection('gymMembers').where('delete_flag', '!=', 1).orderBy('createdAt', 'desc').get();
+        const members = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            startDate1: format(new Date(doc.data().startDate), 'dd-MMM-yyyy'),
+            endDate: format(new Date(doc.data().endDate), 'dd-MMM-yyyy')
+        }));
+        return res.json(members);
+    } catch (err) {
+        return res.status(500).json({ message: "Error", error: err.message });
+    }
+};
 
-    db.query(sql, (err, data) => {
-        if (err) {
-            return res.json("Error");
-        }
-        else {
-            return res.json(data);
-        }
-    })
-}
-
-const updateMember = (req, res) => {
+// Update member details
+const updateMember = async (req, res) => {
     const id = req.params.id;
-    const { name, age, package, startDate, gender, mobile, payment } = req.body
-    const endDate = calculateEndDate(startDate, Number(package))
-    const sql = 'UPDATE `members` SET `name` = ?, `age` = ?, `gender` = ?, `mobile` = ?, `package` = ?, `startDate` = ?, `endDate` = ?, `paymentMethod` = ?, `delete_flag` = 0 WHERE `id` = ?';
-    db.query(sql, [name, age, gender, mobile, package, startDate, endDate, payment, id], (err, data) => {
-        if (err) {
-            return res.json("Error");
-        } else {
-            return res.json("Success");
-        }
-    });
+    const { name, age, package: packageMonth, startDate, gender, mobile, payment } = req.body;
+    try {
+        const endDate = calculateEndDate(startDate, Number(packageMonth));
+        await db.collection('gymMembers').doc(id).update({
+            name,
+            age,
+            gender,
+            mobile,
+            package: packageMonth,
+            startDate,
+            endDate,
+            paymentMethod: payment,
+            delete_flag: 0
+        });
+        return res.json("Success");
+    } catch (err) {
+        return res.status(500).json("Error");
+    }
+};
 
+// Members whose package is ending in <= 7 days and > 0 days
+const packageEnding = async (req, res) => {
+    try {
+        const today = new Date();
+        const snapshot = await db.collection('gymMembers')
+            .where('delete_flag', '!=', 1)
+            .get();
 
-}
+        const members = snapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .filter(member => {
+                const daysLeft = Math.ceil((new Date(member.endDate) - today) / (1000 * 60 * 60 * 24));
+                return daysLeft <= 7 && daysLeft > 0;
+            })
+            .map(member => ({
+                name: member.name,
+                mobile: member.mobile,
+                endDate: format(new Date(member.endDate), 'dd-MMM-yyyy'),
+                days_left: Math.ceil((new Date(member.endDate) - today) / (1000 * 60 * 60 * 24)),
+                transaction_amount_due: member.transaction_amount_due || 0
+            }));
 
-const packageEnding = (req, res) => {
-    const sql =
-        `SELECT 
-    m.name, 
-    m.mobile, 
-    DATE_FORMAT(m.endDate, '%d-%M-%Y') AS endDate,
-    DATEDIFF(m.endDate, NOW()) AS days_left,
-    t.transaction_amount_due
-FROM 
-    members m
-JOIN 
-    transaction t ON m.id = t.transaction_person_name
-WHERE 
-    DATEDIFF(m.endDate, NOW()) <= 7 
-    AND DATEDIFF(m.endDate, NOW()) > 0
-    AND m.Delete_flag != '1'`
+        return res.json(members);
+    } catch (err) {
+        return res.status(500).json({ message: "Error", error: err.message });
+    }
+};
 
-    db.query(sql, (err, data) => {
-        if (err) {
-            return res.json("Error");
-        }
-        else {
-            return res.json(data);
-        }
-    })
-}
+// Members whose package is expired (days_left <= 0)
+const packageExpired = async (req, res) => {
+    try {
+        const today = new Date();
+        const snapshot = await db.collection('gymMembers')
+            .where('delete_flag', '!=', 1)
+            .get();
 
+        const members = snapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .filter(member => {
+                const daysLeft = Math.ceil((new Date(member.endDate) - today) / (1000 * 60 * 60 * 24));
+                return daysLeft <= 0;
+            })
+            .map(member => ({
+                name: member.name,
+                mobile: member.mobile,
+                endDate: format(new Date(member.endDate), 'dd-MMM-yyyy'),
+                days_left: Math.ceil((new Date(member.endDate) - today) / (1000 * 60 * 60 * 24)),
+                transaction_amount_due: member.transaction_amount_due || 0
+            }));
 
-const packageExpired = (req, res) => {
-    const sql = `SELECT 
-    m.name, 
-    m.mobile, 
-    DATE_FORMAT(m.endDate, '%d-%M-%Y') AS endDate,
-    DATEDIFF(m.endDate, NOW()) AS days_left,
-    t.transaction_amount_due
-FROM 
-    members m
-JOIN 
-    transaction t ON m.id = t.transaction_person_name
-WHERE 
-    DATEDIFF(m.endDate, NOW()) <= 0 
-    AND m.Delete_flag != '1';`
-    db.query(sql, (err, data) => {
-        if (err) {
-            return res.json("Error");
-        }
-        else {
-            return res.json(data);
-        }
-    })
-}
+        return res.json(members);
+    } catch (err) {
+        return res.status(500).json({ message: "Error", error: err.message });
+    }
+};
 
+// Renew member's package
+const renewMember = async (req, res) => {
+    const memberId = req.params.id;
+    const { package: packageMonth, startDate, paymentMethod } = req.body;
+    try {
+        const endDate = calculateEndDate(startDate, Number(packageMonth));
+        await db.collection('gymMembers').doc(memberId).update({
+            package: packageMonth,
+            startDate,
+            endDate,
+            paymentMethod
+        });
+        return res.status(200).json({ message: "Member renewed successfully", memberId });
+    } catch (err) {
+        return res.status(500).json({ message: "Error", error: err.message });
+    }
+};
 
+// Get only member names (for dropdowns etc.)
+const getOnlyMember = async (req, res) => {
+    try {
+        const snapshot = await db.collection('gymMembers').where('delete_flag', '!=', 1).get();
+        const members = snapshot.docs.map(doc => ({
+            value: doc.data().name,
+            label: doc.data().name
+        }));
+        return res.json(members);
+    } catch (err) {
+        return res.status(500).json({ message: "Error", error: err.message });
+    }
+};
 
-const getOnlyMember = (req, res) => {
-    const sql = `SELECT name as value, name as label  FROM members WHERE Delete_flag != '1'`
-    db.query(sql, (err, data) => {
-        if (err) {
-            return res.json("Error");
-        }
-        else {
-            return res.json(data);
-        }
-    })
-}
-
-module.exports = { addMember, deleteMember, getMember, updateMember, packageEnding, packageExpired, getOnlyMember }
+module.exports = {
+    addMember,
+    deleteMember,
+    getMember,
+    updateMember,
+    packageEnding,
+    packageExpired,
+    getOnlyMember,
+    renewMember
+};

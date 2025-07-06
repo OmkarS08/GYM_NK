@@ -1,45 +1,51 @@
-const db = require('../config/db');
+const db = require('../config/firebaseConfig');
 
-const getPackage = (req,res)=>{
+// Get all packages
+const getPackage = async (req, res) => {
+    try {
+        const snapshot = await db.collection('package').get();
+        const packages = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        return res.json(packages);
+    } catch (err) {
+        return res.status(500).json({ message: "Error in Backend", error: err.message });
+    }
+};
 
-    sql ='SELECT * FROM package '
-    db.query(sql,(err,data)=>{
-        if (err) {
-           return res.json(`Error in Backend + ${err}`);
-       }
-       else {
-           return res.json(data);
-       }
-     })
-}
-
-const updatePackage = (req,res) =>{
-    const { package_id, amount } = req.body;
-    const sql = `UPDATE package SET packagePrice = ? WHERE package_id = ?`;
-  
-    db.query(sql, [amount, package_id], (err, result) => {
-      if (err) {
-        console.error(err);
-        res.status(500).send('Server Error');
-      } else {
-        res.status(200).send('Success');
-      }
-    });
-
-}
-
-const getPackageAmount = (req,res)=>{
-    const packageMonth = req.params.month;
-    const sql = `SELECT packagePrice FROM package WHERE packageMonth = ${packageMonth}`;
-    db.query(sql, (err, data) => {
-        if (err) {
-          console.error(err);
-          res.status(500).send('Server Error');
-        } else {
-          res.status(200).json(data);
+// Update package price by packageId
+const updatePackage = async (req, res) => {
+    const { packageId, amount } = req.body;
+    try {
+        // Find the document with the given packageId
+        const snapshot = await db.collection('package').where('packageId', '==', Number(packageId)).get();
+        if (snapshot.empty) {
+            return res.status(404).send('Package not found');
         }
-      });
-}
+        const docId = snapshot.docs[0].id;
+        await db.collection('package').doc(docId).update({
+            packagePrice: Number(amount)
+        });
+        return res.status(200).send('Success');
+    } catch (err) {
+        return res.status(500).send('Server Error');
+    }
+};
 
+// Get package amount by month
+const getPackageAmount = async (req, res) => {
+    const packageMonth = Number(req.params.month);
+    try {
+        const snapshot = await db.collection('package').where('packageMonth', '==', packageMonth).get();
+        if (snapshot.empty) {
+            return res.status(404).send('Package not found');
+        }
+        const packageData = snapshot.docs[0].data();
+        return res.status(200).json({ packagePrice: packageData.packagePrice });
+    } catch (err) {
+        return res.status(500).send('Server Error');
+    }
+};
 
-module.exports = {getPackage,updatePackage,getPackageAmount};
+module.exports = { getPackage, updatePackage, getPackageAmount };
