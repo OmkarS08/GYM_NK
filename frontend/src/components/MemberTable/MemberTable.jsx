@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import TableBody from './TableBody'
-import EditMember from '../EditMember/EditMember'
 import axios from 'axios'
 
 const MemberTable = () => {
