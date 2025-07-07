@@ -107,37 +107,6 @@ const EditForm = ({ member, handleClose }) => {
     setRenewModalOpen(true); // Open the renewal modal
   }
 
-  const handleRenewSubmit = (e) => {
-    e.preventDefault();
-    axios.post(
-      `https://gym-royal-fitness.onrender.com/members/renewMember/${member.id}`,
-      {
-        package: formData.package,
-        startDate: formData.startDate,
-        paymentMethod: formData.payment, // <-- this is the fix!
-      }
-    )
-    .then(async (res) => {
-      if (res.status === 200) {
-        const transactionLogged = await logTransaction(res.data.memberId);
-        if (transactionLogged) {
-          Swal.fire({
-            title: 'Success!',
-            text: 'Member has been renewed.',
-            icon: 'success',
-            timer: 1500,
-            showConfirmButton: false,
-            timerProgressBar: 'True',
-          });
-          setRenewModalOpen(false);
-          handleClose();
-        }
-      }
-    })
-    .catch((err) => {
-      console.error('Error:', err);
-    });
-  };
 
   // Add a simple RenewModal component inside EditMember for clarity
   const RenewModal = () => {
@@ -158,7 +127,7 @@ const EditForm = ({ member, handleClose }) => {
           })
           .catch(err => console.error(err));
       }
-    }, [formData.package]);
+    }, []);
 
     // Handle amount paid change
     const handleRenewAmountPaidChange = (e) => {
@@ -231,7 +200,7 @@ const EditForm = ({ member, handleClose }) => {
                         type="radio"
                         name="package"
                         value={pkg}
-                        checked={formData.package == pkg}
+                        checked={formData.package === pkg}
                         onChange={handleChange}
                         className="mr-2 accent-blue-500"
                       />
@@ -435,7 +404,7 @@ const EditForm = ({ member, handleClose }) => {
                             type="radio"
                             name="package"
                             value={pkg}
-                            checked={formData.package == pkg}
+                            checked={formData.package === pkg}
                             onChange={handleChange}
                             className="mr-2 accent-blue-500"
                           />
