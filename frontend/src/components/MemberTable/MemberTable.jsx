@@ -9,7 +9,7 @@ const MemberTable = () => {
     const [filteredData, setFilteredData] = useState([]);
 
     useEffect(() => {
-        axios.get('http://localhost:8081/members/getMember')
+        axios.get('https://gym-royal-fitness.onrender.com/members/getMember')
             .then(res => {
                 if (res.status === 200) {
                     setData(res.data)

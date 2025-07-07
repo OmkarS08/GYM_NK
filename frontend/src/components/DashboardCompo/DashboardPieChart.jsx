@@ -10,7 +10,7 @@ const DashboardPieChart = () => {
       });
     
       useEffect(() => {
-        axios.get('http://localhost:8081/dashboard/PieChart')
+        axios.get('https://gym-royal-fitness.onrender.com/dashboard/PieChart')
           .then(res => {
             if (res.status === 200) {
               // Process the data for package distribution

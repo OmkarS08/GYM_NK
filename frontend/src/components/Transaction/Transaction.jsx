@@ -13,7 +13,7 @@ const Transaction = () => {
     const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
-        axios.get('http://localhost:8081/transaction/getTransaction')
+        axios.get('https://gym-royal-fitness.onrender.com/transaction/getTransaction')
             .then(res => {
                 if (res.status === 200) {
                     setTransData(res.data)
@@ -24,7 +24,7 @@ const Transaction = () => {
             })
             .catch(err => console.log(err))
 
-        axios.get('http://localhost:8081/transaction/getCountTrans')
+        axios.get('https://gym-royal-fitness.onrender.com/transaction/getCountTrans')
             .then(res => {
                 if (res.status === 200) {
                     setCountData(res.data);

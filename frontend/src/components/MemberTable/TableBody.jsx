@@ -39,7 +39,7 @@ const TableBody = ({ data }) => {
       confirmButtonText: "Yes, delete it!"
     }).then((result) => {
       if (result.isConfirmed) {
-        axios.post(`http://localhost:8081/members/deleteMember/${id}`)
+        axios.post(`https://gym-royal-fitness.onrender.com/members/deleteMember/${id}`)
           .then(res => {
             if (res.status === 200) {
               Swal.fire({

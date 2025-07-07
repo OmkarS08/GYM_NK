@@ -9,7 +9,7 @@ const ActivityLog = () => {
     const [data, setData] = useState(null)
 
     useEffect(() => {
-        axios.get('http://localhost:8081/activityLog/getActivity')
+        axios.get('https://gym-royal-fitness.onrender.com/activityLog/getActivity')
             .then(res => {
                 if (res.status === 200) {
                     setData(res.data)

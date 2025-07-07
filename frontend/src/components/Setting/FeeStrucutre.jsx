@@ -11,7 +11,7 @@ const FeeStructure = () => {
   const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
-    axios.get('http://localhost:8081/package/getPackage')
+    axios.get('https://gym-royal-fitness.onrender.com/package/getPackage')
       .then(res => {
         if (res.status === 200) {
           // Sort by packageId ascending
@@ -52,7 +52,7 @@ const FeeStructure = () => {
       reverseButtons: true
     }).then((result) => {
       if (result.isConfirmed) {
-        axios.post('http://localhost:8081/package/updateAmount', { packageId, amount })
+        axios.post('https://gym-royal-fitness.onrender.com/package/updateAmount', { packageId, amount })
           .then(res => {
             if (res.status === 200) {
               Swal.fire(

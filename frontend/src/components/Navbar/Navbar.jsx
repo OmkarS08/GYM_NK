@@ -51,8 +51,8 @@ const Navbar = () => {
             variants={navVariants}
         >
             <div className="flex items-center justify-center h-16 bg-gray-900">
-                <img className='mx-2' src="2DPNG.png" alt="logo" width="40" height="40" />
-                <span className="text-white font-bold uppercase text-lg">NK Gym Dashboard</span>
+                <img className='mx-2' src="Logo2.jpeg" alt="logo" width="40" height="40" />
+                <span className="text-white font-bold uppercase text-lg">Royal Fitness</span>
             </div>
             <div className="flex flex-col flex-1 overflow-y-auto">
                 <nav className="flex-1 px-2 py-4 bg-gray-800">

@@ -10,7 +10,7 @@ const DashboardTChart = () => {
   });
 
   useEffect(() => {
-    axios.get('http://localhost:8081/dashboard/BarChart')
+    axios.get('https://gym-royal-fitness.onrender.com/dashboard/BarChart')
       .then(res => {
         if (res.status === 200) {
           // Process the data

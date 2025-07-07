@@ -10,7 +10,7 @@ const Notification = () => {
   const[packageExpiredData , setPackageExpiredData] = useState([]);
 
   useEffect(() => {
-    axios.get(`http://localhost:8081/members/packageEnding`)
+    axios.get(`https://gym-royal-fitness.onrender.com/members/packageEnding`)
       .then(res => {
         if (res.status === 200) {
           setData(res.data)
@@ -22,7 +22,7 @@ const Notification = () => {
   },[])
 
   useEffect(() => {
-    axios.get(`http://localhost:8081/members/packageExpired`)
+    axios.get(`https://gym-royal-fitness.onrender.com/members/packageExpired`)
       .then(res => {
         if (res.status === 200) {
           setPackageExpiredData(res.data)

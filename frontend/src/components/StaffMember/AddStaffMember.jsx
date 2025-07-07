@@ -41,7 +41,7 @@ const AddStaffMember = ({ handleClose }) => {
       return;
     }
 
-    axios.post('http://localhost:8081/auth/register', {
+    axios.post('https://gym-royal-fitness.onrender.com/auth/register', {
       email,
       password,
       admin: admin === '1'

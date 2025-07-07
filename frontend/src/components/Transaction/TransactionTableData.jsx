@@ -71,7 +71,7 @@ const TransactionTableData = ({ data: initialData, onDelete }) => {
       const adminEmail = localStorage.getItem('adminEmail'); // or from context/props
 
       // 1. Verify password
-      const verifyRes = await axios.post('http://localhost:8081/auth/verifyPassword', {
+      const verifyRes = await axios.post('https://gym-royal-fitness.onrender.com/auth/verifyPassword', {
         email: adminEmail,
         password
       });
@@ -82,7 +82,7 @@ const TransactionTableData = ({ data: initialData, onDelete }) => {
 
       // 2. Delete transaction if password is correct
       const transaction_id = deleteDialog.transaction.transaction_id;
-      await axios.delete(`http://localhost:8081/transaction/deleteTransaction/${transaction_id}`);
+      await axios.delete(`https://gym-royal-fitness.onrender.com/transaction/deleteTransaction/${transaction_id}`);
 
       setData(prev => prev.filter(t => t.transaction_id !== transaction_id));
       handleCloseDelete();

@@ -29,7 +29,7 @@ const EditMember = ({ member, handleClose }) => {
 
   useEffect(() => {
     if (formData.package) {
-      axios.get(`http://localhost:8081/package/getPackageAmount/${formData.package}`)
+      axios.get(`https://gym-royal-fitness.onrender.com/package/getPackageAmount/${formData.package}`)
         .then(res => {
           if (res.status === 200 && res.data && res.data.packagePrice !== undefined) {
             setPackageAmount(res.data.packagePrice);
@@ -47,7 +47,7 @@ const EditMember = ({ member, handleClose }) => {
 
   const handleEditSubmit = (e) => {
     e.preventDefault();
-    axios.post(`http://localhost:8081/members/updateMember/${member.id}`, formData)
+    axios.post(`https://gym-royal-fitness.onrender.com/members/updateMember/${member.id}`, formData)
       .then(res => {
         if (res.status === 200) {
           Swal.fire({
@@ -86,7 +86,7 @@ const EditMember = ({ member, handleClose }) => {
       transaction_amount_due: Number(packageAmount) - Number(amountPaid),
     };
 
-    return axios.post('http://localhost:8081/transaction/addTranscation', transactionData)
+    return axios.post('https://gym-royal-fitness.onrender.com/transaction/addTranscation', transactionData)
       .then(res => {
         if (res.status === 200) {
           console.log('Transaction logged successfully');
@@ -110,7 +110,7 @@ const EditMember = ({ member, handleClose }) => {
   const handleRenewSubmit = (e) => {
     e.preventDefault();
     axios.post(
-      `http://localhost:8081/members/renewMember/${member.id}`,
+      `https://gym-royal-fitness.onrender.com/members/renewMember/${member.id}`,
       {
         package: formData.package,
         startDate: formData.startDate,
@@ -148,7 +148,7 @@ const EditMember = ({ member, handleClose }) => {
     // Fetch package price when package changes in the renew modal
     useEffect(() => {
       if (formData.package) {
-        axios.get(`http://localhost:8081/package/getPackageAmount/${formData.package}`)
+        axios.get(`https://gym-royal-fitness.onrender.com/package/getPackageAmount/${formData.package}`)
           .then(res => {
             if (res.status === 200 && res.data && res.data.packagePrice !== undefined) {
               setRenewPackagePrice(res.data.packagePrice);
@@ -186,7 +186,7 @@ const EditMember = ({ member, handleClose }) => {
             <form onSubmit={e => {
               e.preventDefault();
               axios.post(
-                `http://localhost:8081/members/renewMember/${member.id}`,
+                `https://gym-royal-fitness.onrender.com/members/renewMember/${member.id}`,
                 {
                   package: formData.package,
                   startDate: formData.startDate,

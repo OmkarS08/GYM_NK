@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import logActivity from '../../globalFunction/ActivityLog';
 import { FaUser, FaPhone, FaIdCard, FaTransgender, FaCalendarAlt, FaMoneyBill, FaRupeeSign } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import Loader from '../Loader/Loader';
 
 const MemberForm = () => {
   const [formData, setFormData] = useState({
@@ -25,6 +26,9 @@ const MemberForm = () => {
   const [profilePicPreview, setProfilePicPreview] = useState('');
   const [aadharFrontPreview, setAadharFrontPreview] = useState('');
   const [aadharBackPreview, setAadharBackPreview] = useState('');
+  const [uploadingProfile, setUploadingProfile] = useState(false);
+  const [uploadingAadharFront, setUploadingAadharFront] = useState(false);
+  const [uploadingAadharBack, setUploadingAadharBack] = useState(false);
 
   const navigate = useNavigate();
 
@@ -57,7 +61,7 @@ const MemberForm = () => {
       transaction_amount_due: packageAmount - formData.amountPaid,
     };
 
-    return axios.post('http://localhost:8081/transaction/addTranscation', transactionData)
+    return axios.post('https://gym-royal-fitness.onrender.com/transaction/addTranscation', transactionData)
       .then(res => {
         if (res.status === 200) {
           console.log('Transaction logged successfully');
@@ -75,7 +79,7 @@ const MemberForm = () => {
 
   useEffect(() => {
     if (formData.package) {
-      axios.get(`http://localhost:8081/package/getPackageAmount/${formData.package}`)
+      axios.get(`https://gym-royal-fitness.onrender.com/package/getPackageAmount/${formData.package}`)
         .then(res => {
           if (res.status === 200) {
             const price = res.data.packagePrice;
@@ -104,6 +108,11 @@ const MemberForm = () => {
     };
     reader.readAsDataURL(file);
 
+    // Set loader
+    if (type === 'profile') setUploadingProfile(true);
+    else if (type === 'aadharFront') setUploadingAadharFront(true);
+    else if (type === 'aadharBack') setUploadingAadharBack(true);
+
     // Upload to backend
     const formData = new FormData();
     formData.append('file', file);
@@ -115,7 +124,7 @@ const MemberForm = () => {
         : 'gym_members/aadhar/back'
     );
     try {
-      const res = await axios.post('http://localhost:8081/upload/image', formData, {
+      const res = await axios.post('https://gym-royal-fitness.onrender.com/upload/image', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       if (type === 'profile') setProfilePicUrl(res.data.url);
@@ -123,6 +132,10 @@ const MemberForm = () => {
       else if (type === 'aadharBack') setAadharBackUrl(res.data.url);
     } catch (err) {
       alert('Image upload failed');
+    } finally {
+      if (type === 'profile') setUploadingProfile(false);
+      else if (type === 'aadharFront') setUploadingAadharFront(false);
+      else if (type === 'aadharBack') setUploadingAadharBack(false);
     }
   };
 
@@ -132,7 +145,7 @@ const MemberForm = () => {
       return;
     }
 
-    axios.post('http://localhost:8081/members/AddMember', {
+    axios.post('https://gym-royal-fitness.onrender.com/members/AddMember', {
       ...formData,
       profilePicUrl,
       aadharFrontUrl,
@@ -362,6 +375,7 @@ const MemberForm = () => {
           {profilePicPreview && (
             <img src={profilePicPreview} alt="Profile Preview" className="w-24 h-24 rounded-full object-cover border" />
           )}
+          {uploadingProfile && <Loader />}
         </div>
         <div className="mb-3">
           <label className="block text-gray-700 font-medium mb-1">Aadhar Front Photo</label>
@@ -374,6 +388,7 @@ const MemberForm = () => {
           {aadharFrontPreview && (
             <img src={aadharFrontPreview} alt="Aadhar Front Preview" className="w-24 h-24 object-cover border" />
           )}
+          {uploadingAadharFront && <Loader />}
         </div>
         <div className="mb-3">
           <label className="block text-gray-700 font-medium mb-1">Aadhar Back Photo</label>
@@ -386,6 +401,7 @@ const MemberForm = () => {
           {aadharBackPreview && (
             <img src={aadharBackPreview} alt="Aadhar Back Preview" className="w-24 h-24 object-cover border" />
           )}
+          {uploadingAadharBack && <Loader />}
         </div>
         <div className="py-6 text-center">
           <motion.button

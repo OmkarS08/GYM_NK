@@ -16,7 +16,7 @@ const DashboardCompo = () => {
 
     useEffect(() => {
         // Member gender/total count
-        axios.get('http://localhost:8081/dashboard/memberCount')
+        axios.get('https://gym-royal-fitness.onrender.com/dashboard/memberCount')
             .then(res => {
                 if (res.status === 200) {
                     const genderData = res.data;
@@ -33,7 +33,7 @@ const DashboardCompo = () => {
             });
 
         // Active/Inactive members
-        axios.get('http://localhost:8081/members/getMember')
+        axios.get('https://gym-royal-fitness.onrender.com/members/getMember')
             .then(res => {
                 if (res.status === 200) {
                     const today = new Date();
@@ -59,7 +59,7 @@ const DashboardCompo = () => {
             });
 
         // Revenue (example: sum of all paid amounts)
-        axios.get('http://localhost:8081/transaction/getTransaction')
+        axios.get('https://gym-royal-fitness.onrender.com/transaction/getTransaction')
             .then(res => {
                 if (res.status === 200) {
                     const revenue = res.data.reduce((sum, t) => sum + (Number(t.transaction_amount_paid) || 0), 0);

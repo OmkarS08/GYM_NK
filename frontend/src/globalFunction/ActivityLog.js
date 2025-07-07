@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const logActivity = async (userId, activity) => {
     try {
-        const response = await axios.post('http://localhost:8081/activityLog/addActivity', {
+        const response = await axios.post('https://gym-royal-fitness.onrender.com/activityLog/addActivity', {
             user_id: userId,
             activity: activity
         });

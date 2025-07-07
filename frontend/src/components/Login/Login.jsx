@@ -18,7 +18,7 @@ const Login = () => {
     const handleSubmit = (event) => {
         event.preventDefault();
         setLoading(true);
-        axios.post('http://localhost:8081/auth/login', values)
+        axios.post('https://gym-royal-fitness.onrender.com/auth/login', values)
             .then(res => {
                 setLoading(false);
                 if (res.data.user) {
