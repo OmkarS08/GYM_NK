@@ -106,7 +106,6 @@ const updateTransactionMember = async (req, res) => {
 // Delete transaction by id
 const deleteTransaction = async (req, res) => {
     const id = req.params.id;
-    console.log('Deleting transaction with id:', id);
     try {
         await db.collection('transaction').doc(id).delete();
         return res.json("Success");

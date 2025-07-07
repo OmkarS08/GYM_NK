@@ -1,19 +1,16 @@
 const db = require('../config/firebaseConfig');
-const bcrypt = require('bcryptjs'); // Changed to bcryptjs
-const nodemailer = require('nodemailer'); // npm install nodemailer
+const bcrypt = require('bcryptjs');
+const nodemailer = require('nodemailer');
 
 // Register new admin user
 exports.register = async (req, res) => {
   const { email, password, admin = false } = req.body;
   try {
-    // Check if user already exists
     const snapshot = await db.collection('adminUser').where('email', '==', email).get();
     if (!snapshot.empty) {
       return res.status(400).json({ message: 'User already exists' });
     }
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-    // Create user
     await db.collection('adminUser').add({
       email,
       password: hashedPassword,
@@ -30,19 +27,16 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   const { email, password } = req.body;
   try {
-    // Find user by email
     const snapshot = await db.collection('adminUser').where('email', '==', email).get();
     if (snapshot.empty) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
     const userDoc = snapshot.docs[0];
     const user = userDoc.data();
-    // Compare password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-    // Optionally, generate a JWT here for session management
     res.json({ message: 'Login successful', user: { id: userDoc.id, email: user.email, admin: user.admin } });
   } catch (err) {
     res.status(500).json({ message: 'Login failed', error: err.message });

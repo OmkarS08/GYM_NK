@@ -8,8 +8,6 @@ import { motion } from 'framer-motion';
 
 const Login = () => {
     const [values, setValues] = useState({ email: '', password: '' });
-    const [forgot, setForgot] = useState(false);
-    const [forgotEmail, setForgotEmail] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
@@ -55,27 +53,6 @@ const Login = () => {
         }
     };
 
-    // Real forgot password handler
-    const handleForgotPassword = (e) => {
-        e.preventDefault();
-        if (!forgotEmail) {
-            Swal.fire('Please enter your email', '', 'warning');
-            return;
-        }
-        setLoading(true);
-        axios.post('http://localhost:8081/auth/forgot-password', { email: forgotEmail })
-            .then(res => {
-                setLoading(false);
-                Swal.fire('Password reset link sent!', 'Check your email for instructions.', 'success');
-                setForgot(false);
-                setForgotEmail('');
-            })
-            .catch(() => {
-                setLoading(false);
-                Swal.fire('Error', 'Could not send reset link', 'error');
-            });
-    };
-
     return (
         <div className="w-screen min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-white to-blue-200 px-4">
             <motion.div
@@ -99,97 +76,52 @@ const Login = () => {
                     </span>
                 </motion.div>
                 <div className="px-8 py-8 mt-4 text-left bg-white rounded-2xl shadow-2xl border border-blue-100">
-                    {!forgot ? (
-                        <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
-                            <motion.div
-                                initial={{ opacity: 0, x: -30 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.1 }}
-                                className="relative"
-                            >
-                                <FaUserCircle className="absolute left-3 top-3 text-blue-700" size={20} />
-                                <input
-                                    onChange={handleInput}
-                                    name='email'
-                                    type='email'
-                                    value={values.email}
-                                    className="pl-10 border border-blue-200 rounded-lg px-3 py-2 text-sm w-full outline-none focus:ring-2 focus:ring-blue-400"
-                                    placeholder="Email"
-                                    required
-                                />
-                            </motion.div>
-                            <motion.div
-                                initial={{ opacity: 0, x: 30 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.2 }}
-                                className="relative"
-                            >
-                                <FaLock className="absolute left-3 top-3 text-blue-700" size={20} />
-                                <input
-                                    onChange={handleInput}
-                                    onKeyDown={handleKeyPress}
-                                    name='password'
-                                    value={values.password}
-                                    type="password"
-                                    className="pl-10 border border-blue-200 rounded-lg px-3 py-2 text-sm w-full outline-none focus:ring-2 focus:ring-blue-400"
-                                    placeholder="Password"
-                                    required
-                                />
-                            </motion.div>
-                            <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.98 }}
-                                type="submit"
-                                disabled={loading}
-                                className="py-2 px-8 bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white w-full transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none rounded-lg"
-                            >
-                                {loading ? 'Logging in...' : 'Login'}
-                            </motion.button>
-                        </form>
-                    ) : (
-                        <form onSubmit={handleForgotPassword} className="w-full flex flex-col gap-4">
-                            <div className="relative">
-                                <FaUserCircle className="absolute left-3 top-3 text-blue-700" size={20} />
-                                <input
-                                    type="email"
-                                    value={forgotEmail}
-                                    onChange={e => setForgotEmail(e.target.value)}
-                                    className="pl-10 border border-blue-200 rounded-lg px-3 py-2 text-sm w-full outline-none focus:ring-2 focus:ring-blue-400"
-                                    placeholder="Enter your email"
-                                    required
-                                />
-                            </div>
-                            <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.98 }}
-                                type="submit"
-                                disabled={loading}
-                                className="py-2 px-8 bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white w-full transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none rounded-lg"
-                            >
-                                {loading ? 'Sending...' : 'Send Reset Link'}
-                            </motion.button>
-                        </form>
-                    )}
-                    <div className="mt-4 text-center flex flex-col gap-2">
-                        {!forgot && (
-                            <button
-                                className="text-blue-600 hover:underline text-sm"
-                                onClick={() => setForgot(true)}
-                                type="button"
-                            >
-                                Forgot password?
-                            </button>
-                        )}
-                        {forgot && (
-                            <button
-                                className="text-gray-500 hover:underline text-xs"
-                                onClick={() => setForgot(false)}
-                                type="button"
-                            >
-                                Back to login
-                            </button>
-                        )}
-                    </div>
+                    <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
+                        <motion.div
+                            initial={{ opacity: 0, x: -30 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.1 }}
+                            className="relative"
+                        >
+                            <FaUserCircle className="absolute left-3 top-3 text-blue-700" size={20} />
+                            <input
+                                onChange={handleInput}
+                                name='email'
+                                type='email'
+                                value={values.email}
+                                className="pl-10 border border-blue-200 rounded-lg px-3 py-2 text-sm w-full outline-none focus:ring-2 focus:ring-blue-400"
+                                placeholder="Email"
+                                required
+                            />
+                        </motion.div>
+                        <motion.div
+                            initial={{ opacity: 0, x: 30 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="relative"
+                        >
+                            <FaLock className="absolute left-3 top-3 text-blue-700" size={20} />
+                            <input
+                                onChange={handleInput}
+                                onKeyDown={handleKeyPress}
+                                name='password'
+                                value={values.password}
+                                type="password"
+                                className="pl-10 border border-blue-200 rounded-lg px-3 py-2 text-sm w-full outline-none focus:ring-2 focus:ring-blue-400"
+                                placeholder="Password"
+                                required
+                            />
+                        </motion.div>
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.98 }}
+                            type="submit"
+                            disabled={loading}
+                            className="py-2 px-8 bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white w-full transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none rounded-lg"
+                        >
+                            {loading ? 'Logging in...' : 'Login'}
+                        </motion.button>
+                    </form>
                 </div>
             </motion.div>
         </div>
