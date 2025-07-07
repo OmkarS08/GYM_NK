@@ -6,7 +6,7 @@ import updateTransaction from '../../globalFunction/Updatetans';
 import { FaUser, FaPhone, FaVenusMars, FaCalendarAlt, FaMoneyBill, FaRupeeSign, FaWallet } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const EditMember = ({ member, handleClose }) => {
+const EditForm = ({ member, handleClose }) => {
 
 
   const [packageAmount, setPackageAmount] = useState(member.transaction_package_amount)
@@ -550,4 +550,4 @@ const EditMember = ({ member, handleClose }) => {
   );
 }
 
-export default EditMember;
+export default EditForm;

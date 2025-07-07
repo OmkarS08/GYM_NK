@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import EditMember from '../EditMember/EditMember.jsx'
+import EditForm from '../EditMember/EditForm';
 import logActivity from '../../globalFunction/ActivityLog';
 import { FaEdit, FaTrash, FaUserCircle, FaTimesCircle, FaIdCard, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -277,7 +277,7 @@ const TableBody = ({ data }) => {
       </AnimatePresence>
 
       {isModalOpen && (
-        <EditMember
+        <EditForm
           member={currentMember}
           handleChange={handleChange}
           handleClose={() => setIsModalOpen(false)}
