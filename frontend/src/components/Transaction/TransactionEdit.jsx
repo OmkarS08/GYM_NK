@@ -15,7 +15,7 @@ const TransactionEdit = ({ transaction, handleClose }) => {
 
   const handleEditSubmit = (e) => {
     e.preventDefault();
-    axios.post(`https://gym-royal-fitness.onrender.com/transaction/updateTransaction/${transaction.transaction_id}`, {
+    axios.post(`http://localhost:8081/transaction/updateTransaction/${transaction.transaction_id}`, {
       transaction_amount_paid: amountPaid,
       transaction_amount_due: amountDue
     })

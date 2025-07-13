@@ -6,7 +6,7 @@ import logActivity from './ActivityLog';
     const transaction_amount_due = package_amount - transaction_paid;
 
     try {
-        const response = await axios.post('https://gym-royal-fitness.onrender.com/transaction/updateTransactionMember', {
+        const response = await axios.post('http://http://localhost:8081/transaction/updateTransactionMember', {
             transaction_id, // Send the transaction ID in the request body
             transaction_paid, // Send the new transaction paid amount
             package_amount,

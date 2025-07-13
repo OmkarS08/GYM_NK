@@ -10,6 +10,8 @@ import {
   Legend,
 } from 'chart.js';
 import axios from 'axios';
+import api from '../../api/api'; // Adjust the import path as necessary
+
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 
@@ -21,7 +23,7 @@ const DashboardTChart = () => {
   });
 
   useEffect(() => {
-    axios.get('https://gym-royal-fitness.onrender.com/dashboard/BarChart')
+    api.get('/dashboard/BarChart')
       .then(res => {
         if (res.status === 200) {
           // Process the data

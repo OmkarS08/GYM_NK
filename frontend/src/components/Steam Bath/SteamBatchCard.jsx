@@ -17,7 +17,7 @@ const SteamBatchCard = ({ data }) => {
       confirmButtonText: "Yes, delete it!"
     }).then((result) => {
       if (result.isConfirmed) {
-        axios.post(`https://gym-royal-fitness.onrender.com/steamBath/deleteSteam/${id}`)
+        axios.post(`http://http://localhost:8081/steamBath/deleteSteam/${id}`)
           .then(res => {
             if (res.status === 200) {
               Swal.fire({

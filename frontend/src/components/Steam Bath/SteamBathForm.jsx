@@ -11,7 +11,7 @@ const SteamBathForm = ({ close }) => {
     const [members, setMembers] = useState([]);
 
     useEffect(() => {
-        axios.get(`https://gym-royal-fitness.onrender.com/members/getOnlyMember`)
+        axios.get(`http://http://localhost:8081/members/getOnlyMember`)
             .then(res => {
                 if (res.status === 200) {
                     setMembers(res.data);
@@ -36,7 +36,7 @@ const SteamBathForm = ({ close }) => {
         };
 
 
-        axios.post('https://gym-royal-fitness.onrender.com/steamBath/addSteamBath', formData)
+        axios.post('http://http://localhost:8081/steamBath/addSteamBath', formData)
             .then(res => {
                 if (res.status === 200) {
                     close(false);

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import TransactionEdit from './TransactionEdit';
-import { FaEdit, FaTrash } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaMoneyBillWave, FaMobileAlt } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import Swal from 'sweetalert2'; // <-- Import SweetAlert2
+import Swal from 'sweetalert2';
 
 const DeleteDialog = ({ open, onClose, onConfirm, loading }) => {
   const [password, setPassword] = useState('');
@@ -48,8 +48,7 @@ const DeleteDialog = ({ open, onClose, onConfirm, loading }) => {
   );
 };
 
-const TransactionTableData = ({ data: initialData, onDelete }) => {
-  const [data, setData] = useState(initialData); // Use local state for transactions
+const TransactionTableData = ({ data, onDelete }) => {
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [deleteDialog, setDeleteDialog] = useState({ open: false, transaction: null });
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -67,11 +66,8 @@ const TransactionTableData = ({ data: initialData, onDelete }) => {
   const handleConfirmDelete = async (password) => {
     setDeleteLoading(true);
     try {
-      // Get admin email (replace with your actual logic)
-      const adminEmail = localStorage.getItem('adminEmail'); // or from context/props
-
-      // 1. Verify password
-      const verifyRes = await axios.post('https://gym-royal-fitness.onrender.com/auth/verifyPassword', {
+      const adminEmail = localStorage.getItem('adminEmail');
+      const verifyRes = await axios.post('http://localhost:8081/auth/verifyPassword', {
         email: adminEmail,
         password
       });
@@ -80,11 +76,13 @@ const TransactionTableData = ({ data: initialData, onDelete }) => {
         throw new Error('Password verification failed');
       }
 
-      // 2. Delete transaction if password is correct
       const transaction_id = deleteDialog.transaction.transaction_id;
-      await axios.delete(`https://gym-royal-fitness.onrender.com/transaction/deleteTransaction/${transaction_id}`);
+      await axios.delete(`http://localhost:8081/transaction/deleteTransaction/${transaction_id}`);
 
-      setData(prev => prev.filter(t => t.transaction_id !== transaction_id));
+      // Instead of setData, call onDelete if provided
+      if (onDelete) {
+        await onDelete(transaction_id, password);
+      }
       handleCloseDelete();
       Swal.fire({
         icon: 'success',
@@ -95,9 +93,6 @@ const TransactionTableData = ({ data: initialData, onDelete }) => {
         toast: true,
         position: 'top-end'
       });
-      if (onDelete) {
-        await onDelete(transaction_id, password);
-      }
     } catch (err) {
       Swal.fire({
         icon: 'error',
@@ -145,6 +140,29 @@ const TransactionTableData = ({ data: initialData, onDelete }) => {
               >
                 <FaTrash size={18} />
               </button>
+            </td>
+            {/* Payment Method Column */}
+            <td className="px-6 py-4 whitespace-nowrap">
+              <motion.span
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className={`inline-flex items-center gap-1 font-semibold ${
+                  ele.payment_method === 'UPI'
+                    ? 'text-blue-600'
+                    : 'text-green-600'
+                }`}
+              >
+                {ele.payment_method === 'UPI' ? (
+                  <>
+                    <FaMobileAlt /> UPI
+                  </>
+                ) : (
+                  <>
+                    <FaMoneyBillWave /> Cash
+                  </>
+                )}
+              </motion.span>
             </td>
           </motion.tr>
         ))}

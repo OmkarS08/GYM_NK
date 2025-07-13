@@ -3,14 +3,14 @@ import Navbar from '../Navbar/Navbar'
 import { useState } from 'react';
 import axios from 'axios';
 import NotificationEndDateTable from './NotificationEndDateTable';
-
+import api from '../../api/api';
 const Notification = () => {
 
   const [data, setData] = useState([]);
   const[packageExpiredData , setPackageExpiredData] = useState([]);
 
   useEffect(() => {
-    axios.get(`https://gym-royal-fitness.onrender.com/members/packageEnding`)
+    api.get(`/members/packageEnding`)
       .then(res => {
         if (res.status === 200) {
           setData(res.data)
@@ -22,7 +22,7 @@ const Notification = () => {
   },[])
 
   useEffect(() => {
-    axios.get(`https://gym-royal-fitness.onrender.com/members/packageExpired`)
+    api.get(`/members/packageExpired`)
       .then(res => {
         if (res.status === 200) {
           setPackageExpiredData(res.data)

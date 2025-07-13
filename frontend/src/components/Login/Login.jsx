@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import logActivity from '../../globalFunction/ActivityLog';
 import { FaUserCircle, FaLock, FaDumbbell } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import api from '../../api/api';
 
 const Login = () => {
     const [values, setValues] = useState({ email: '', password: '' });
@@ -18,7 +19,7 @@ const Login = () => {
     const handleSubmit = (event) => {
         event.preventDefault();
         setLoading(true);
-        axios.post('https://gym-royal-fitness.onrender.com/auth/login', values)
+        api.post('/auth/login', values)
             .then(res => {
                 setLoading(false);
                 if (res.data.user) {

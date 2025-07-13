@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios';
 import { FaUsers, FaMale, FaFemale, FaUserCheck, FaUserTimes } from 'react-icons/fa';
 import { motion } from 'framer-motion';
-
+import api from '../../api/api';
 const DashboardCompo = () => {
     const [count, setCount] = useState({
         female: 0,
@@ -16,7 +16,7 @@ const DashboardCompo = () => {
 
     useEffect(() => {
         // Member gender/total count
-        axios.get('https://gym-royal-fitness.onrender.com/dashboard/memberCount')
+        api.get('/dashboard/memberCount')
             .then(res => {
                 if (res.status === 200) {
                     const genderData = res.data;
@@ -33,7 +33,7 @@ const DashboardCompo = () => {
             });
 
         // Active/Inactive members
-        axios.get('https://gym-royal-fitness.onrender.com/members/getMember')
+        api.get('/members/getMember')
             .then(res => {
                 if (res.status === 200) {
                     const today = new Date();
@@ -59,7 +59,7 @@ const DashboardCompo = () => {
             });
 
         // Revenue (example: sum of all paid amounts)
-        axios.get('https://gym-royal-fitness.onrender.com/transaction/getTransaction')
+        api.get('/transaction/getTransaction')
             .then(res => {
                 if (res.status === 200) {
                     const revenue = res.data.reduce((sum, t) => sum + (Number(t.transaction_amount_paid) || 0), 0);

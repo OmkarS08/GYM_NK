@@ -2,16 +2,16 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import logActivity from '../../globalFunction/ActivityLog';
-import { FaEdit, FaRupeeSign, FaBoxOpen } from 'react-icons/fa';
+import { FaEdit, FaRupeeSign, FaBoxOpen, FaHeartbeat } from 'react-icons/fa';
 import { motion } from 'framer-motion';
-
+import api from '../../api/api'; // Adjust the import path as necessary
 const FeeStructure = () => {
   const [packageData, setPackageData] = useState([]);
   const [editAmount, setEditAmount] = useState({});
   const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
-    axios.get('https://gym-royal-fitness.onrender.com/package/getPackage')
+    api.get('/package/getPackage')
       .then(res => {
         if (res.status === 200) {
           // Sort by packageId ascending
@@ -24,27 +24,32 @@ const FeeStructure = () => {
       .catch(err => console.log(err));
   }, []);
 
-  const handleAmountChange = (packageId, value) => {
+  const handleAmountChange = (packageId, key, value) => {
     setEditAmount(prevState => ({
       ...prevState,
-      [packageId]: value
+      [packageId]: {
+        ...prevState[packageId],
+        [key]: value
+      }
     }));
   };
 
-  const handleEditClick = (packageId, currentAmount) => {
+  const handleEditClick = (packageId, currentWith, currentWithout) => {
     setEditingId(packageId);
     setEditAmount(prev => ({
       ...prev,
-      [packageId]: currentAmount
+      [packageId]: {
+        amountWithCardio: currentWith,
+        amountWithoutCardio: currentWithout
+      }
     }));
   };
 
   const handleSave = (packageId) => {
-    const amount = editAmount[packageId] !== undefined ? editAmount[packageId] : packageData.find(ele => ele.packageId === packageId).packagePrice;
-
+    const { amountWithCardio, amountWithoutCardio } = editAmount[packageId] || {};
     Swal.fire({
       title: 'Are you sure?',
-      text: "You want to update the amount!",
+      text: "You want to update the amounts!",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, update it!',
@@ -52,32 +57,24 @@ const FeeStructure = () => {
       reverseButtons: true
     }).then((result) => {
       if (result.isConfirmed) {
-        axios.post('https://gym-royal-fitness.onrender.com/package/updateAmount', { packageId, amount })
+        api.post('/package/updateAmount', { packageId, amountWithCardio, amountWithoutCardio })
           .then(res => {
             if (res.status === 200) {
-              Swal.fire(
-                'Updated!',
-                'The package amount has been updated.',
-                'success'
-              );
-              logActivity(localStorage.getItem('loginId'), `PackageID  ${packageId} has been edited with ${amount}`);
+              Swal.fire('Updated!', 'The package amounts have been updated.', 'success');
+              logActivity(localStorage.getItem('loginId'), `PackageID ${packageId} edited: With Cardio ${amountWithCardio}, Without Cardio ${amountWithoutCardio}`);
               setPackageData(prevData =>
                 prevData.map(ele =>
-                  ele.packageId === packageId ? { ...ele, packagePrice: amount } : ele
+                  ele.packageId === packageId
+                    ? { ...ele, packagePriceWithCardio: amountWithCardio, packagePriceWithoutCardio: amountWithoutCardio }
+                    : ele
                 )
               );
               setEditingId(null);
             }
           })
           .catch(err => console.log(err));
-      } else if (
-        result.dismiss === Swal.DismissReason.cancel
-      ) {
-        Swal.fire(
-          'Cancelled',
-          'The package amount is unchanged.',
-          'error'
-        );
+      } else if (result.dismiss === Swal.DismissReason.cancel) {
+        Swal.fire('Cancelled', 'The package amounts are unchanged.', 'error');
         setEditingId(null);
       }
     });
@@ -106,7 +103,8 @@ const FeeStructure = () => {
             <tr className="border-b bg-blue-100">
               <th className="text-center p-4 px-5">ID</th>
               <th className="text-center p-4 px-5">Package (Months)</th>
-              <th className="text-center p-4 px-5">Amount</th>
+              <th className="text-center p-4 px-5">With Cardio <FaHeartbeat className="inline text-red-500" /></th>
+              <th className="text-center p-4 px-5">Without Cardio</th>
               <th className="text-center p-4 px-5">Actions</th>
             </tr>
             {packageData.length > 0 ? packageData.map((ele) => (
@@ -119,19 +117,38 @@ const FeeStructure = () => {
               >
                 <td className="p-4 px-5 text-center font-semibold">{ele.packageId}</td>
                 <td className="p-4 px-5 text-center">{ele.packageMonth}</td>
-                <td className="p-4 px-5 text-center flex items-center justify-center gap-2">
-                  <FaRupeeSign className="text-green-600" />
-                  {editingId === ele.packageId ? (
-                    <input
-                      type="number"
-                      value={editAmount[ele.packageId]}
-                      onChange={(e) => handleAmountChange(ele.packageId, e.target.value)}
-                      className="border border-blue-400 p-2 w-24 rounded-lg focus:outline-none focus:border-blue-600 text-center"
-                      autoFocus
-                    />
-                  ) : (
-                    <span className="font-medium">{ele.packagePrice}</span>
-                  )}
+                {/* With Cardio */}
+                <td className="p-4 px-5 text-center">
+                  <div className="flex items-center justify-center gap-2">
+                    <FaRupeeSign className="text-green-600" />
+                    {editingId === ele.packageId ? (
+                      <input
+                        type="number"
+                        value={editAmount[ele.packageId]?.amountWithCardio}
+                        onChange={(e) => handleAmountChange(ele.packageId, 'amountWithCardio', e.target.value)}
+                        className="border border-blue-400 p-2 w-24 rounded-lg focus:outline-none focus:border-blue-600 text-center"
+                        autoFocus
+                      />
+                    ) : (
+                      <span className="font-medium">{ele.packagePriceWithCardio}</span>
+                    )}
+                  </div>
+                </td>
+                {/* Without Cardio */}
+                <td className="p-4 px-5 text-center">
+                  <div className="flex items-center justify-center gap-2">
+                    <FaRupeeSign className="text-green-600" />
+                    {editingId === ele.packageId ? (
+                      <input
+                        type="number"
+                        value={editAmount[ele.packageId]?.amountWithoutCardio}
+                        onChange={(e) => handleAmountChange(ele.packageId, 'amountWithoutCardio', e.target.value)}
+                        className="border border-blue-400 p-2 w-24 rounded-lg focus:outline-none focus:border-blue-600 text-center"
+                      />
+                    ) : (
+                      <span className="font-medium">{ele.packagePriceWithoutCardio}</span>
+                    )}
+                  </div>
                 </td>
                 <td className="p-3 px-5 text-center">
                   {editingId === ele.packageId ? (
@@ -146,7 +163,7 @@ const FeeStructure = () => {
                   ) : (
                     <motion.button
                       type="button"
-                      onClick={() => handleEditClick(ele.packageId, ele.packagePrice)}
+                      onClick={() => handleEditClick(ele.packageId, ele.packagePriceWithCardio, ele.packagePriceWithoutCardio)}
                       className="text-sm bg-blue-500 hover:bg-blue-700 text-white py-1 px-2 rounded focus:outline-none focus:shadow-outline flex items-center gap-1"
                       whileHover={{ scale: 1.08 }}
                     >

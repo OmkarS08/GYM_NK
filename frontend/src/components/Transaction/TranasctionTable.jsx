@@ -14,13 +14,14 @@ const TranasctionTable = ({data}) => {
         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount Paid</th>
         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount Due</th>
         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Method</th> {/* New */}
       </tr>
     </thead>
     <tbody className="bg-white divide-y divide-gray-200">
 
       {!data || data.length === 0 ? (
         <tr>
-          <td colSpan="8" className='text-center text-red-600 bg-white-200'>No Data Available</td>
+          <td colSpan="9" className='text-center text-red-600 bg-white-200'>No Data Available</td>
         </tr>
       ) : <TransactionTableData data={data}/>}
 

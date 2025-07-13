@@ -8,7 +8,7 @@ const SteamBath = () => {
   const [steamBathData, setSteamBathData] = useState([]);
 
   useEffect(() => {
-    axios.get('https://gym-royal-fitness.onrender.com/steamBath/getSteamData')
+    axios.get('http://http://localhost:8081/steamBath/getSteamData')
       .then(res => {
         if (res.status === 200) {
           setSteamBathData(res.data)

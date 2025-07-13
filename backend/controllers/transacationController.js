@@ -2,13 +2,14 @@ const db = require('../config/firebaseConfig');
 
 // Add a new transaction
 const addTransaction = async (req, res) => {
-    const { transaction_person_name, transaction_package_amount, transaction_amount_paid, transaction_amount_due } = req.body;
+    const { transaction_person_name, transaction_package_amount, transaction_amount_paid, transaction_amount_due, payment_method } = req.body;
     try {
         await db.collection('transaction').add({
             transaction_person_name,
             transaction_package_amount,
             transaction_amount_paid,
             transaction_amount_due,
+            payment_method, // <-- add this
             transaction_time_stamp: new Date()
         });
         return res.json("Success");
@@ -36,6 +37,7 @@ const getTransaction = async (req, res) => {
                 transaction_package_amount: t.transaction_package_amount,
                 transaction_amount_paid: t.transaction_amount_paid,
                 transaction_amount_due: t.transaction_amount_due,
+                payment_method: t.payment_method || '', // <-- add this
                 transaction_time_stamp: t.transaction_time_stamp?.toDate ? t.transaction_time_stamp.toDate().toISOString().slice(0, 19).replace('T', ' ') : '',
                 member_name: member.name || '',
                 member_package: member.package || '',
@@ -55,18 +57,24 @@ const getCountTrans = async (req, res) => {
         let total_amount_paid = 0;
         let total_amount_due = 0;
         let total_package_amount = 0;
+        let total_upi = 0;
+        let total_cash = 0;
 
         transSnap.docs.forEach(doc => {
             const t = doc.data();
             total_amount_paid += Number(t.transaction_amount_paid) || 0;
             total_amount_due += Number(t.transaction_amount_due) || 0;
             total_package_amount += Number(t.transaction_package_amount) || 0;
+            if (t.payment_method === 'UPI') total_upi += Number(t.transaction_amount_paid) || 0;
+            if (t.payment_method === 'Cash') total_cash += Number(t.transaction_amount_paid) || 0;
         });
 
         return res.json([{
             total_amount_paid,
             total_amount_due,
-            total_package_amount
+            total_package_amount,
+            total_upi,
+            total_cash
         }]);
     } catch (err) {
         return res.status(500).json({ message: "Error", error: err.message });

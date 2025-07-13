@@ -5,7 +5,7 @@ import logActivity from '../../globalFunction/ActivityLog';
 import { FaUser, FaPhone, FaIdCard, FaTransgender, FaCalendarAlt, FaMoneyBill, FaRupeeSign } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import Loader from '../Loader/Loader';
-
+import api from '../../api/api';
 const MemberForm = () => {
   const [formData, setFormData] = useState({
     name: '',
@@ -29,6 +29,7 @@ const MemberForm = () => {
   const [uploadingProfile, setUploadingProfile] = useState(false);
   const [uploadingAadharFront, setUploadingAadharFront] = useState(false);
   const [uploadingAadharBack, setUploadingAadharBack] = useState(false);
+  const [cardio, setCardio] = useState('with'); // 'with' or 'without'
 
   const navigate = useNavigate();
 
@@ -53,15 +54,17 @@ const MemberForm = () => {
     }));
   };
 
+  // Update logTransaction to include payment_method
   const logTransaction = (memberId) => {
     const transactionData = {
       transaction_person_name: memberId,
       transaction_package_amount: packageAmount,
       transaction_amount_paid: Number(formData.amountPaid),
       transaction_amount_due: packageAmount - formData.amountPaid,
+      payment_method: formData.payment, // <-- Add this line
     };
 
-    return axios.post('https://gym-royal-fitness.onrender.com/transaction/addTranscation', transactionData)
+    return api.post('/transaction/addTranscation', transactionData)
       .then(res => {
         if (res.status === 200) {
           console.log('Transaction logged successfully');
@@ -79,21 +82,23 @@ const MemberForm = () => {
 
   useEffect(() => {
     if (formData.package) {
-      axios.get(`https://gym-royal-fitness.onrender.com/package/getPackageAmount/${formData.package}`)
+      api.get(`/package/getPackageAmount/${formData.package}`)
         .then(res => {
           if (res.status === 200) {
-            const price = res.data.packagePrice;
+            const price = cardio === 'with'
+              ? res.data.packagePriceWithCardio
+              : res.data.packagePriceWithoutCardio;
             setPackageAmount(price);
             setFormData(prev => ({
               ...prev,
-              packageAmount: price, // keep in sync
-              amountPaid: prev.amountPaid || price // set default if empty
+              packageAmount: price,
+              amountPaid: prev.amountPaid || price
             }));
           }
         })
         .catch(err => console.error(err));
     }
-  }, [formData.package]);
+  }, [formData.package, cardio]);
 
   // Handle file upload
   const handleFileUpload = async (e, type) => {
@@ -124,7 +129,7 @@ const MemberForm = () => {
         : 'gym_members/aadhar/back'
     );
     try {
-      const res = await axios.post('https://gym-royal-fitness.onrender.com/upload/image', formData, {
+      const res = await api.post('/upload/image', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       if (type === 'profile') setProfilePicUrl(res.data.url);
@@ -145,11 +150,12 @@ const MemberForm = () => {
       return;
     }
 
-    axios.post('https://gym-royal-fitness.onrender.com/members/AddMember', {
+    api.post('/members/AddMember', {
       ...formData,
       profilePicUrl,
       aadharFrontUrl,
-      aadharBackUrl
+      aadharBackUrl,
+      cardio: cardio // <-- add this
     })
       .then(async res => {
         if (res.data.message === "Success") {
@@ -171,7 +177,7 @@ const MemberForm = () => {
 
   return (
     <motion.div
-      className="bg-white border rounded-xl px-6 py-6 mx-auto my-8 max-w-md shadow-lg" // <-- Increased width and padding
+      className="bg-white border rounded-xl px-14 py-10 mx-auto my-8 max-w-3xl shadow-lg" // Wider form
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.4 }}
@@ -278,6 +284,106 @@ const MemberForm = () => {
             required
           />
         </div>
+
+        {/* File Inputs */}
+        <div className="mb-6">
+          {/* Profile Photo Row */}
+          <div className="flex flex-row justify-center mb-4">
+            <div className="flex flex-col items-center">
+              <label className="block text-gray-700 font-medium mb-1">Profile Photo</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={e => handleFileUpload(e, 'profile')}
+                className="mb-2"
+              />
+              {uploadingProfile && <Loader />}
+              {profilePicPreview && (
+                <img src={profilePicPreview} alt="Profile Preview" className="w-20 h-20 rounded-full object-cover border" />
+              )}
+            </div>
+          </div>
+          {/* Aadhar Row */}
+          <div className="flex flex-row gap-12 justify-center">
+            {/* Aadhar Front */}
+            <div className="flex flex-col items-center">
+              <label className="block text-gray-700 font-medium mb-1">Aadhar Front</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={e => handleFileUpload(e, 'aadharFront')}
+                className="mb-2"
+              />
+              {uploadingAadharFront && <Loader />}
+              {aadharFrontPreview && (
+                <img src={aadharFrontPreview} alt="Aadhar Front Preview" className="w-20 h-20 object-cover border rounded" />
+              )}
+            </div>
+            {/* Aadhar Back */}
+            <div className="flex flex-col items-center">
+              <label className="block text-gray-700 font-medium mb-1">Aadhar Back</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={e => handleFileUpload(e, 'aadharBack')}
+                className="mb-2"
+              />
+              {uploadingAadharBack && <Loader />}
+              {aadharBackPreview && (
+                <img src={aadharBackPreview} alt="Aadhar Back Preview" className="w-20 h-20 object-cover border rounded" />
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Package Month */}
+        <div className="mb-3">
+          <label className="block text-gray-700 font-medium mb-2 text-xs">Package Month:</label>
+          <div className="flex flex-wrap -mx-2">
+            {[1, 3, 6, 12].map(month => (
+              <div className="px-2 w-1/4" key={month}>
+                <label className="block text-gray-700 font-medium mb-2 text-xs">
+                  <input
+                    type="radio"
+                    name="package"
+                    value={month}
+                    checked={formData.package === String(month)}
+                    onChange={handleChange}
+                    className="mr-2"
+                  />
+                  {month} Month{month > 1 ? 's' : ''}
+                </label>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Cardio */}
+        <div className="mb-3 flex items-center gap-4">
+          <label className="font-medium text-gray-700">Cardio:</label>
+          <label className="flex items-center gap-1">
+            <input
+              type="radio"
+              name="cardio"
+              value="with"
+              checked={cardio === 'with'}
+              onChange={() => setCardio('with')}
+              className="mr-1"
+            />
+            With Cardio
+          </label>
+          <label className="flex items-center gap-1">
+            <input
+              type="radio"
+              name="cardio"
+              value="without"
+              checked={cardio === 'without'}
+              onChange={() => setCardio('without')}
+              className="mr-1"
+            />
+            Without Cardio
+          </label>
+        </div>
+        {/* Package Amount */}
         <div className="mb-3 flex items-center gap-2">
           <FaRupeeSign className="text-gray-400" />
           <input
@@ -290,6 +396,7 @@ const MemberForm = () => {
             className="border border-gray-300 p-2 text-sm w-full rounded-lg focus:outline-none focus:border-blue-400 bg-gray-100"
           />
         </div>
+        {/* Amount Paid */}
         <div className="mb-3 flex items-center gap-2">
           <FaRupeeSign className="text-gray-400" />
           <input
@@ -302,106 +409,6 @@ const MemberForm = () => {
             className="border border-gray-300 p-2 text-sm w-full rounded-lg focus:outline-none focus:border-blue-400"
             required
           />
-        </div>
-        <div className="mb-3">
-          <label className="block text-gray-700 font-medium mb-2 text-xs">Package:</label>
-          <div className="flex flex-wrap -mx-2">
-            <div className="px-2 w-1/4">
-              <label htmlFor="color-red" className="block text-gray-700 font-medium mb-2 text-xs">
-                <input
-                  type="radio"
-                  id="color-red"
-                  name="package"
-                  value="1"
-                  checked={formData.package === '1'}
-                  onChange={handleChange}
-                  className="mr-2"
-                />
-                1 Month
-              </label>
-            </div>
-            <div className="px-2 w-1/4">
-              <label htmlFor="color-blue" className="block text-gray-700 font-medium mb-2 text-xs">
-                <input
-                  type="radio"
-                  id="color-blue"
-                  name="package"
-                  value="3"
-                  checked={formData.package === '3'}
-                  onChange={handleChange}
-                  className="mr-2"
-                />
-                3 Months
-              </label>
-            </div>
-            <div className="px-2 w-1/4">
-              <label htmlFor="color-green" className="block text-gray-700 font-medium mb-2 text-xs">
-                <input
-                  type="radio"
-                  id="color-green"
-                  name="package"
-                  value="6"
-                  checked={formData.package === '6'}
-                  onChange={handleChange}
-                  className="mr-2"
-                />
-                6 Months
-              </label>
-            </div>
-            <div className="px-2 w-1/4">
-              <label htmlFor="color-green" className="block text-gray-700 font-medium mb-2 text-xs">
-                <input
-                  type="radio"
-                  id="color-green"
-                  name="package"
-                  value="12"
-                  checked={formData.package === '12'}
-                  onChange={handleChange}
-                  className="mr-2"
-                />
-                12 Months
-              </label>
-            </div>
-          </div>
-        </div>
-        <div className="mb-3">
-          <label className="block text-gray-700 font-medium mb-1">Profile Photo</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={e => handleFileUpload(e, 'profile')}
-            className="mb-2"
-          />
-          {profilePicPreview && (
-            <img src={profilePicPreview} alt="Profile Preview" className="w-24 h-24 rounded-full object-cover border" />
-          )}
-          {uploadingProfile && <Loader />}
-        </div>
-        <div className="mb-3">
-          <label className="block text-gray-700 font-medium mb-1">Aadhar Front Photo</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={e => handleFileUpload(e, 'aadharFront')}
-            className="mb-2"
-          />
-          {aadharFrontPreview && (
-            <img src={aadharFrontPreview} alt="Aadhar Front Preview" className="w-24 h-24 object-cover border" />
-          )}
-          {uploadingAadharFront && <Loader />}
-        </div>
-        <div className="mb-3">
-          <label className="block text-gray-700 font-medium mb-1">Aadhar Back Photo</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={e => handleFileUpload(e, 'aadharBack')}
-            className="mb-2"
-          />
-          {aadharBackPreview && (
-            <img src={aadharBackPreview} alt="Aadhar Back Preview" className="w-24 h-24 object-cover border" />
-          )}
-          {uploadingAadharBack && <Loader />}
         </div>
         <div className="py-6 text-center">
           <motion.button

@@ -3,20 +3,22 @@ import Navbar from '../Navbar/Navbar'
 import TransactionCount from './TransactionCount'
 import TranasctionTable from './TranasctionTable'
 import axios from 'axios'
-import { FaMoneyCheckAlt } from 'react-icons/fa'
+import { FaMoneyCheckAlt, FaFilter } from 'react-icons/fa'
 import { motion } from 'framer-motion'
-
+import api from '../../api/api'
 const Transaction = () => {
     const [transData, setTransData] = useState([]);
     const [filteredData, setFilteredData] = useState([]);
     const [countData, setCountData] = useState(['']);
     const [searchQuery, setSearchQuery] = useState('');
+    const [paymentFilter, setPaymentFilter] = useState('All');
 
     useEffect(() => {
-        axios.get('https://gym-royal-fitness.onrender.com/transaction/getTransaction')
+        api.get('/transaction/getTransaction')
             .then(res => {
                 if (res.status === 200) {
                     setTransData(res.data)
+                    console.log(res.data);
                 }
                 else {
                     console.log(res.status);
@@ -24,7 +26,7 @@ const Transaction = () => {
             })
             .catch(err => console.log(err))
 
-        axios.get('https://gym-royal-fitness.onrender.com/transaction/getCountTrans')
+        api.get('/transaction/getCountTrans')
             .then(res => {
                 if (res.status === 200) {
                     setCountData(res.data);
@@ -37,12 +39,19 @@ const Transaction = () => {
     }, [])
 
     useEffect(() => {
-        // Filter transactions based on search query
-        const filtered = transData.filter((transaction) =>
-            transaction.member_name.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+        let filtered = transData;
+        if (searchQuery) {
+            filtered = filtered.filter((transaction) =>
+                transaction.member_name.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
+        if (paymentFilter !== 'All') {
+            filtered = filtered.filter((transaction) =>
+                transaction.payment_method === paymentFilter
+            );
+        }
         setFilteredData(filtered);
-    }, [searchQuery, transData]);
+    }, [searchQuery, paymentFilter, transData]);
 
     return (
         <div className="flex h-screen bg-gradient-to-br from-gray-100 to-blue-100">
@@ -59,9 +68,9 @@ const Transaction = () => {
                 </motion.div>
                 <div className="p-4">
                     <TransactionCount countData={countData} />
-                    {/* Search input */}
+                    {/* Search and filter input */}
                     <motion.div
-                        className="mb-4"
+                        className="flex flex-col sm:flex-row gap-2 mb-4 items-center"
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.4 }}
@@ -73,6 +82,18 @@ const Transaction = () => {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
+                        <div className="flex items-center gap-2 mt-4">
+                            <FaFilter className="text-blue-500" />
+                            <select
+                                className="border rounded-lg px-3 py-2 focus:outline-none focus:ring focus:border-blue-500"
+                                value={paymentFilter}
+                                onChange={e => setPaymentFilter(e.target.value)}
+                            >
+                                <option value="All">All</option>
+                                <option value="UPI">UPI</option>
+                                <option value="Cash">Cash</option>
+                            </select>
+                        </div>
                     </motion.div>
                     <TranasctionTable data={filteredData} />
                 </div>

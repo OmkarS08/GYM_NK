@@ -5,7 +5,7 @@ import EditForm from '../EditMember/EditForm';
 import logActivity from '../../globalFunction/ActivityLog';
 import { FaEdit, FaTrash, FaUserCircle, FaTimesCircle, FaIdCard, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
-
+import api from '../../api/api';
 const TableBody = ({ data }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentMember, setCurrentMember] = useState(null);
@@ -39,7 +39,7 @@ const TableBody = ({ data }) => {
       confirmButtonText: "Yes, delete it!"
     }).then((result) => {
       if (result.isConfirmed) {
-        axios.post(`https://gym-royal-fitness.onrender.com/members/deleteMember/${id}`)
+        api.post(`/members/deleteMember/${id}`)
           .then(res => {
             if (res.status === 200) {
               Swal.fire({

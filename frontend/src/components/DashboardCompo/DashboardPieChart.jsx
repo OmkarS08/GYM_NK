@@ -7,7 +7,7 @@ import {
   Legend,
 } from 'chart.js';
 import axios from 'axios';
-
+import api from '../../api/api';
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const DashboardPieChart = () => {
@@ -17,7 +17,7 @@ const DashboardPieChart = () => {
       });
     
       useEffect(() => {
-        axios.get('https://gym-royal-fitness.onrender.com/dashboard/PieChart')
+        api.get('/dashboard/PieChart')
           .then(res => {
             if (res.status === 200) {
               // Process the data for package distribution

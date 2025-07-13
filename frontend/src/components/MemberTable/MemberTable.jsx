@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import TableBody from './TableBody'
 import axios from 'axios'
-
+import api from '../../api/api'
 const MemberTable = () => {
 
     const [data, setData] = useState([]);
@@ -9,7 +9,7 @@ const MemberTable = () => {
     const [filteredData, setFilteredData] = useState([]);
 
     useEffect(() => {
-        axios.get('https://gym-royal-fitness.onrender.com/members/getMember')
+        api.get('/members/getMember')
             .then(res => {
                 if (res.status === 200) {
                     setData(res.data)

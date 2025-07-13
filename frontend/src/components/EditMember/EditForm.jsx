@@ -5,7 +5,7 @@ import logActivity from '../../globalFunction/ActivityLog';
 import updateTransaction from '../../globalFunction/Updatetans';
 import { FaUser, FaPhone, FaVenusMars, FaCalendarAlt, FaMoneyBill, FaRupeeSign, FaWallet } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
-
+import api from '../../api/api';
 const EditForm = ({ member, handleClose }) => {
 
 
@@ -29,7 +29,7 @@ const EditForm = ({ member, handleClose }) => {
 
   useEffect(() => {
     if (formData.package) {
-      axios.get(`https://gym-royal-fitness.onrender.com/package/getPackageAmount/${formData.package}`)
+      api.get(`/package/getPackageAmount/${formData.package}`)
         .then(res => {
           if (res.status === 200 && res.data && res.data.packagePrice !== undefined) {
             setPackageAmount(res.data.packagePrice);
@@ -47,7 +47,7 @@ const EditForm = ({ member, handleClose }) => {
 
   const handleEditSubmit = (e) => {
     e.preventDefault();
-    axios.post(`https://gym-royal-fitness.onrender.com/members/updateMember/${member.id}`, formData)
+    api.post(`/members/updateMember/${member.id}`, formData)
       .then(res => {
         if (res.status === 200) {
           Swal.fire({
@@ -86,7 +86,7 @@ const EditForm = ({ member, handleClose }) => {
       transaction_amount_due: Number(packageAmount) - Number(amountPaid),
     };
 
-    return axios.post('https://gym-royal-fitness.onrender.com/transaction/addTranscation', transactionData)
+    return api.post('/transaction/addTranscation', transactionData)
       .then(res => {
         if (res.status === 200) {
           console.log('Transaction logged successfully');
@@ -117,7 +117,7 @@ const EditForm = ({ member, handleClose }) => {
     // Fetch package price when package changes in the renew modal
     useEffect(() => {
       if (formData.package) {
-        axios.get(`https://gym-royal-fitness.onrender.com/package/getPackageAmount/${formData.package}`)
+        api.get(`/package/getPackageAmount/${formData.package}`)
           .then(res => {
             if (res.status === 200 && res.data && res.data.packagePrice !== undefined) {
               setRenewPackagePrice(res.data.packagePrice);
@@ -154,8 +154,8 @@ const EditForm = ({ member, handleClose }) => {
             </h2>
             <form onSubmit={e => {
               e.preventDefault();
-              axios.post(
-                `https://gym-royal-fitness.onrender.com/members/renewMember/${member.id}`,
+              api.post(
+                `/members/renewMember/${member.id}`,
                 {
                   package: formData.package,
                   startDate: formData.startDate,

@@ -4,7 +4,7 @@ const { format } = require('date-fns');
 
 // Add a new member
 const addMember = async (req, res) => {
-    const { name, age, package: packageMonth, startDate, gender, mobile, payment, aadhar, profilePicUrl, aadharFrontUrl, aadharBackUrl } = req.body;
+    const { name, age, package: packageMonth, startDate, gender, mobile, payment, aadhar, profilePicUrl, aadharFrontUrl, aadharBackUrl, cardio } = req.body;
     try {
         const endDate = calculateEndDate(startDate, Number(packageMonth));
         const newMember = {
@@ -21,7 +21,8 @@ const addMember = async (req, res) => {
             aadharFrontUrl,
             aadharBackUrl,
             delete_flag: 0,
-            createdAt: new Date()
+            createdAt: new Date(),
+            cardio, // <-- save this
         };
         const docRef = await db.collection('gymMembers').add(newMember);
         return res.json({ message: "Success", memberId: docRef.id });
@@ -60,7 +61,7 @@ const getMember = async (req, res) => {
 // Update member details
 const updateMember = async (req, res) => {
     const id = req.params.id;
-    const { name, age, package: packageMonth, startDate, gender, mobile, payment } = req.body;
+    const { name, age, package: packageMonth, startDate, gender, mobile, payment, cardio } = req.body;
     try {
         const endDate = calculateEndDate(startDate, Number(packageMonth));
         await db.collection('gymMembers').doc(id).update({
@@ -72,7 +73,8 @@ const updateMember = async (req, res) => {
             startDate,
             endDate,
             paymentMethod: payment,
-            delete_flag: 0
+            delete_flag: 0,
+            cardio, // <-- update this field
         });
         return res.json("Success");
     } catch (err) {

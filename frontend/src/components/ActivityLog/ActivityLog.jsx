@@ -4,12 +4,12 @@ import ActivityLogTable from './ActivityLogTable'
 import axios from 'axios'
 import { FaHistory } from 'react-icons/fa'
 import { motion } from 'framer-motion'
-
+import api from '../../api/api'
 const ActivityLog = () => {
     const [data, setData] = useState(null)
 
     useEffect(() => {
-        axios.get('https://gym-royal-fitness.onrender.com/activityLog/getActivity')
+        api.get('/activityLog/getActivity')
             .then(res => {
                 if (res.status === 200) {
                     setData(res.data)

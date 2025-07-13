@@ -7,7 +7,7 @@ const StaffMember = () => {
 
     const [staffMemberData, setStaffMemberData] = useState([]);
     useEffect(() => {
-        axios.get('https://gym-royal-fitness.onrender.com/staffMember/getStaffMember')
+        axios.get('http://http://localhost:8081/staffMember/getStaffMember')
             .then(res => {
                 if (res.status === 200) {
                     setStaffMemberData(res.data)
@@ -32,7 +32,7 @@ const StaffMember = () => {
             confirmButtonText: "Yes, delete it!"
         }).then((result) => {
             if (result.isConfirmed) {
-                axios.post(`https://gym-royal-fitness.onrender.com/staffMember/deleteStaffMember/${id}`)
+                axios.post(`http://http://localhost:8081/staffMember/deleteStaffMember/${id}`)
                     .then(res => {
                         if (res.status === 200) {
                             Swal.fire({
@@ -71,7 +71,7 @@ const StaffMember = () => {
 
     const handleSelect = (id, name, newRole) => {
         // newRole will be either '0' (staff) or '1' (admin)
-        axios.post(`https://gym-royal-fitness.onrender.com/staffMember/updateStaff/${id}`, { admin: newRole })
+        axios.post(`http://http://localhost:8081/staffMember/updateStaff/${id}`, { admin: newRole })
             .then(res => {
                 if (res.status === 200) {
                     Swal.fire({
