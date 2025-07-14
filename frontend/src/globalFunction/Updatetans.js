@@ -1,9 +1,9 @@
-import axios from 'axios';
+import api from '../api/api';
 import logActivity from './ActivityLog';
  const updateTransaction = async (transaction_id,transaction_paid,package_amount,name) =>{
 
 
-    const transaction_amount_due = package_amount - transaction_paid;
+
 
     try {
         const payload = {
@@ -13,7 +13,7 @@ import logActivity from './ActivityLog';
             transaction_amount_due: Number(package_amount) - Number(transaction_paid)
         };
         console.log('Sending transaction update payload:', payload);
-        const response = await axios.post('http://localhost:8081/transaction/updateTransactionMember', payload);
+        const response = await api.post('/transaction/updateTransactionMember', payload);
 
         console.log('Transaction Updated Successfully:', response.status); // Handle successful response with data (if any)
         logActivity(localStorage.getItem('loginId') ,`transaction for  ${name} has been edited `)

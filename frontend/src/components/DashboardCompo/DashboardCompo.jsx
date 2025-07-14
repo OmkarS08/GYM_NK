@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import axios from 'axios';
 import { FaUsers, FaMale, FaFemale, FaUserCheck, FaUserTimes } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import api from '../../api/api';

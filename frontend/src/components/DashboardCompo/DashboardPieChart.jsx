@@ -6,7 +6,6 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import axios from 'axios';
 import api from '../../api/api';
 ChartJS.register(ArcElement, Tooltip, Legend);
 

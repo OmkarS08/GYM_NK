@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import TableBody from './TableBody'
-import axios from 'axios'
 import api from '../../api/api'
 const MemberTable = () => {
 
