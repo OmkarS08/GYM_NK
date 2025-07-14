@@ -1,11 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import logActivity from '../../globalFunction/ActivityLog';
-import { FaUser, FaPhone, FaIdCard, FaTransgender, FaCalendarAlt, FaMoneyBill, FaRupeeSign } from 'react-icons/fa';
-import { motion } from 'framer-motion';
+import { 
+  FaUser, 
+  FaPhone, 
+  FaIdCard, 
+  FaTransgender, 
+  FaCalendarAlt, 
+  FaMoneyBill, 
+  FaRupeeSign,
+  FaCamera,
+  FaUpload,
+  FaChevronDown,
+  FaImage,
+  FaCreditCard,
+  FaDumbbell,
+  FaHeart
+} from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
 import Loader from '../Loader/Loader';
 import api from '../../api/api';
+import { useWebcam } from '../../context/WebcamContext';
+
 const MemberForm = () => {
   const [formData, setFormData] = useState({
     name: '',
@@ -29,9 +45,20 @@ const MemberForm = () => {
   const [uploadingProfile, setUploadingProfile] = useState(false);
   const [uploadingAadharFront, setUploadingAadharFront] = useState(false);
   const [uploadingAadharBack, setUploadingAadharBack] = useState(false);
-  const [cardio, setCardio] = useState('with'); // 'with' or 'without'
+  const [cardio, setCardio] = useState('with');
+  const [imageMethod, setImageMethod] = useState({
+    profile: 'upload',
+    aadharFront: 'upload',
+    aadharBack: 'upload'
+  });
+  const [showDropdown, setShowDropdown] = useState({
+    profile: false,
+    aadharFront: false,
+    aadharBack: false
+  });
 
   const navigate = useNavigate();
+  const { openWebcamModal } = useWebcam();
 
   // Validate Aadhar (12 digits)
   const validateAadhar = (value) => {
@@ -61,7 +88,7 @@ const MemberForm = () => {
       transaction_package_amount: packageAmount,
       transaction_amount_paid: Number(formData.amountPaid),
       transaction_amount_due: packageAmount - formData.amountPaid,
-      payment_method: formData.payment, // <-- Add this line
+      payment_method: formData.payment,
     };
 
     return api.post('/transaction/addTranscation', transactionData)
@@ -104,6 +131,7 @@ const MemberForm = () => {
   const handleFileUpload = async (e, type) => {
     const file = e.target.files[0];
     if (!file) return;
+    
     // Show preview immediately
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -144,6 +172,71 @@ const MemberForm = () => {
     }
   };
 
+  // Handle webcam capture
+  const handleWebcamCapture = async (img, type) => {
+    // Show preview immediately
+    if (type === 'profile') setProfilePicPreview(img);
+    else if (type === 'aadharFront') setAadharFrontPreview(img);
+    else if (type === 'aadharBack') setAadharBackPreview(img);
+
+    // Set loader
+    if (type === 'profile') setUploadingProfile(true);
+    else if (type === 'aadharFront') setUploadingAadharFront(true);
+    else if (type === 'aadharBack') setUploadingAadharBack(true);
+
+    // Convert base64 to Blob and upload
+    const res = await fetch(img);
+    const blob = await res.blob();
+    const formData = new FormData();
+    formData.append('file', blob, `${type}.jpg`);
+    formData.append('folder',
+      type === 'profile'
+        ? 'gym_members/profile'
+        : type === 'aadharFront'
+        ? 'gym_members/aadhar/front'
+        : 'gym_members/aadhar/back'
+    );
+    try {
+      const uploadRes = await api.post('/upload/image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      if (type === 'profile') setProfilePicUrl(uploadRes.data.url);
+      else if (type === 'aadharFront') setAadharFrontUrl(uploadRes.data.url);
+      else if (type === 'aadharBack') setAadharBackUrl(uploadRes.data.url);
+    } catch (err) {
+      alert('Image upload failed');
+    } finally {
+      if (type === 'profile') setUploadingProfile(false);
+      else if (type === 'aadharFront') setUploadingAadharFront(false);
+      else if (type === 'aadharBack') setUploadingAadharBack(false);
+    }
+  };
+
+  // Open webcam modal for different types
+  const openCameraFor = (type) => {
+    openWebcamModal(type, (img) => handleWebcamCapture(img, type));
+  };
+
+  // Toggle dropdown for image method selection
+  const toggleDropdown = (type) => {
+    setShowDropdown(prev => ({
+      ...prev,
+      [type]: !prev[type]
+    }));
+  };
+
+  // Set image method
+  const setImageMethodFor = (type, method) => {
+    setImageMethod(prev => ({
+      ...prev,
+      [type]: method
+    }));
+    setShowDropdown(prev => ({
+      ...prev,
+      [type]: false
+    }));
+  };
+
   const handleSubmit = (event) => {
     event.preventDefault();
     if (!validateAadhar(formData.aadhar)) {
@@ -155,7 +248,7 @@ const MemberForm = () => {
       profilePicUrl,
       aadharFrontUrl,
       aadharBackUrl,
-      cardio: cardio // <-- add this
+      cardio: cardio
     })
       .then(async res => {
         if (res.data.message === "Success") {
@@ -175,254 +268,608 @@ const MemberForm = () => {
       .catch(err => console.log(err));
   };
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        duration: 0.6,
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: { opacity: 1, x: 0 }
+  };
+
+  const buttonVariants = {
+    hover: { scale: 1.02, boxShadow: "0 4px 12px rgba(0,0,0,0.15)" },
+    tap: { scale: 0.98 }
+  };
+
   return (
-    <motion.div
-      className="bg-white border rounded-xl px-14 py-10 mx-auto my-8 max-w-3xl shadow-lg" // Wider form
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.4 }}
-    >
-      <h2 className="text-xl font-semibold mb-4 text-center flex items-center justify-center gap-2">
-        <FaUser className="text-blue-500" /> Add Member
-      </h2>
-      <form onSubmit={handleSubmit} autoComplete="off">
-        <div className="mb-3 flex items-center gap-2">
-          <FaUser className="text-gray-400" />
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            placeholder="Name"
-            className="border border-gray-300 p-2 text-sm w-full rounded-lg focus:outline-none focus:border-blue-400"
-            required
-          />
-        </div>
-        <div className="mb-3 flex items-center gap-2">
-          <FaIdCard className="text-gray-400" />
-          <input
-            type="text"
-            id="aadhar"
-            name="aadhar"
-            value={formData.aadhar}
-            onChange={handleChange}
-            placeholder="Aadhar Card Number"
-            className={`border p-2 text-sm w-full rounded-lg focus:outline-none focus:border-blue-400 ${aadharError ? 'border-red-500' : 'border-gray-300'}`}
-            required
-            maxLength={12}
-            minLength={12}
-            inputMode="numeric"
-          />
-        </div>
-        {aadharError && <div className="text-red-500 text-xs mb-2">{aadharError}</div>}
-        <div className="mb-3 flex items-center gap-2">
-          <FaPhone className="text-gray-400" />
-          <input
-            type="tel"
-            id="mobile"
-            name="mobile"
-            value={formData.mobile}
-            onChange={handleChange}
-            placeholder="Mobile"
-            className="border border-gray-300 p-2 text-sm w-full rounded-lg focus:outline-none focus:border-blue-400"
-            required
-          />
-        </div>
-        <div className="mb-3 flex items-center gap-2">
-          <FaTransgender className="text-gray-400" />
-          <select
-            id="gender"
-            name="gender"
-            value={formData.gender}
-            onChange={handleChange}
-            className="border border-gray-300 p-2 text-sm w-full rounded-lg focus:outline-none focus:border-blue-400"
-            required
-          >
-            <option value="">Select gender</option>
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-          </select>
-        </div>
-        <div className="mb-3 flex items-center gap-2">
-          <FaUser className="text-gray-400" />
-          <input
-            type="number"
-            id="age"
-            name="age"
-            value={formData.age}
-            onChange={handleChange}
-            placeholder="Age"
-            className="border border-gray-300 p-2 text-sm w-full rounded-lg focus:outline-none focus:border-blue-400"
-            required
-          />
-        </div>
-        <div className="mb-3 flex items-center gap-2">
-          <FaMoneyBill className="text-gray-400" />
-          <select
-            id="payment"
-            name="payment"
-            value={formData.payment}
-            onChange={handleChange}
-            className="border border-gray-300 p-2 text-sm w-full rounded-lg focus:outline-none focus:border-blue-400"
-            required
-          >
-            <option value="">Select Payment Method</option>
-            <option value="Cash">Cash</option>
-            <option value="UPI">UPI</option>
-          </select>
-        </div>
-        <div className="mb-3 flex items-center gap-2">
-          <FaCalendarAlt className="text-gray-400" />
-          <input
-            type="date"
-            id="startDate"
-            name="startDate"
-            value={formData.startDate}
-            onChange={handleChange}
-            className="border border-gray-300 p-2 text-sm w-full rounded-lg focus:outline-none focus:border-blue-400"
-            required
-          />
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
+      <motion.div
+        className="max-w-4xl mx-auto"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* Header */}
+        <motion.div 
+          className="text-center mb-8"
+          variants={itemVariants}
+        >
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
+            Add New Member
+          </h1>
+          <p className="text-gray-600 text-lg">
+            Complete the form below to register a new gym member
+          </p>
+        </motion.div>
 
-        {/* File Inputs */}
-        <div className="mb-6">
-          {/* Profile Photo Row */}
-          <div className="flex flex-row justify-center mb-4">
-            <div className="flex flex-col items-center">
-              <label className="block text-gray-700 font-medium mb-1">Profile Photo</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={e => handleFileUpload(e, 'profile')}
-                className="mb-2"
-              />
-              {uploadingProfile && <Loader />}
-              {profilePicPreview && (
-                <img src={profilePicPreview} alt="Profile Preview" className="w-20 h-20 rounded-full object-cover border" />
-              )}
-            </div>
-          </div>
-          {/* Aadhar Row */}
-          <div className="flex flex-row gap-12 justify-center">
-            {/* Aadhar Front */}
-            <div className="flex flex-col items-center">
-              <label className="block text-gray-700 font-medium mb-1">Aadhar Front</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={e => handleFileUpload(e, 'aadharFront')}
-                className="mb-2"
-              />
-              {uploadingAadharFront && <Loader />}
-              {aadharFrontPreview && (
-                <img src={aadharFrontPreview} alt="Aadhar Front Preview" className="w-20 h-20 object-cover border rounded" />
-              )}
-            </div>
-            {/* Aadhar Back */}
-            <div className="flex flex-col items-center">
-              <label className="block text-gray-700 font-medium mb-1">Aadhar Back</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={e => handleFileUpload(e, 'aadharBack')}
-                className="mb-2"
-              />
-              {uploadingAadharBack && <Loader />}
-              {aadharBackPreview && (
-                <img src={aadharBackPreview} alt="Aadhar Back Preview" className="w-20 h-20 object-cover border rounded" />
-              )}
-            </div>
-          </div>
-        </div>
+        {/* Form Container */}
+        <motion.div
+          className="bg-white rounded-2xl shadow-xl p-6 md:p-8"
+          variants={itemVariants}
+        >
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Personal Information Section */}
+            <motion.div variants={itemVariants}>
+              <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <FaUser className="text-blue-500" />
+                Personal Information
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Name */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Full Name *
+                  </label>
+                  <div className="relative">
+                    <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder="Enter full name"
+                      required
+                    />
+                  </div>
+                </div>
 
-        {/* Package Month */}
-        <div className="mb-3">
-          <label className="block text-gray-700 font-medium mb-2 text-xs">Package Month:</label>
-          <div className="flex flex-wrap -mx-2">
-            {[1, 3, 6, 12].map(month => (
-              <div className="px-2 w-1/4" key={month}>
-                <label className="block text-gray-700 font-medium mb-2 text-xs">
-                  <input
-                    type="radio"
-                    name="package"
-                    value={month}
-                    checked={formData.package === String(month)}
-                    onChange={handleChange}
-                    className="mr-2"
-                  />
-                  {month} Month{month > 1 ? 's' : ''}
-                </label>
+                {/* Age */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Age *
+                  </label>
+                  <div className="relative">
+                    <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="number"
+                      name="age"
+                      value={formData.age}
+                      onChange={handleChange}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder="Enter age"
+                      min="1"
+                      max="120"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Mobile */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Mobile Number *
+                  </label>
+                  <div className="relative">
+                    <FaPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="tel"
+                      name="mobile"
+                      value={formData.mobile}
+                      onChange={handleChange}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder="Enter mobile number"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Gender */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Gender *
+                  </label>
+                  <div className="relative">
+                    <FaTransgender className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <select
+                      name="gender"
+                      value={formData.gender}
+                      onChange={handleChange}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white"
+                      required
+                    >
+                      <option value="">Select gender</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                    </select>
+                    <FaChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+                  </div>
+                </div>
+
+                {/* Aadhar */}
+                <div className="space-y-2 md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Aadhar Card Number *
+                  </label>
+                  <div className="relative">
+                    <FaIdCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      name="aadhar"
+                      value={formData.aadhar}
+                      onChange={handleChange}
+                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${aadharError ? 'border-red-500' : 'border-gray-300'}`}
+                      placeholder="Enter 12-digit Aadhar number"
+                      maxLength={12}
+                      minLength={12}
+                      inputMode="numeric"
+                      required
+                    />
+                  </div>
+                  {aadharError && (
+                    <p className="text-red-500 text-sm mt-1">{aadharError}</p>
+                  )}
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-        {/* Cardio */}
-        <div className="mb-3 flex items-center gap-4">
-          <label className="font-medium text-gray-700">Cardio:</label>
-          <label className="flex items-center gap-1">
-            <input
-              type="radio"
-              name="cardio"
-              value="with"
-              checked={cardio === 'with'}
-              onChange={() => setCardio('with')}
-              className="mr-1"
-            />
-            With Cardio
-          </label>
-          <label className="flex items-center gap-1">
-            <input
-              type="radio"
-              name="cardio"
-              value="without"
-              checked={cardio === 'without'}
-              onChange={() => setCardio('without')}
-              className="mr-1"
-            />
-            Without Cardio
-          </label>
-        </div>
-        {/* Package Amount */}
-        <div className="mb-3 flex items-center gap-2">
-          <FaRupeeSign className="text-gray-400" />
-          <input
-            type="number"
-            id="packageAmount"
-            name="packageAmount"
-            value={formData.packageAmount || ''}
-            readOnly
-            placeholder="Package Amount"
-            className="border border-gray-300 p-2 text-sm w-full rounded-lg focus:outline-none focus:border-blue-400 bg-gray-100"
-          />
-        </div>
-        {/* Amount Paid */}
-        <div className="mb-3 flex items-center gap-2">
-          <FaRupeeSign className="text-gray-400" />
-          <input
-            type="number"
-            id="amountPaid"
-            name="amountPaid"
-            value={formData.amountPaid || ''}
-            onChange={handleChange}
-            placeholder="Amount Paid"
-            className="border border-gray-300 p-2 text-sm w-full rounded-lg focus:outline-none focus:border-blue-400"
-            required
-          />
-        </div>
-        <div className="py-6 text-center">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.97 }}
-            type="submit"
-            className="bg-blue-500 text-white px-8 py-2 rounded-full hover:bg-blue-600 transition-all font-semibold text-sm"
-          >
-            Submit
-          </motion.button>
-        </div>
-      </form>
+            </motion.div>
 
-    </motion.div>
+            {/* Membership Details Section */}
+            <motion.div variants={itemVariants}>
+              <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <FaCreditCard className="text-blue-500" />
+                Membership Details
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Start Date */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Start Date *
+                  </label>
+                  <div className="relative">
+                    <FaCalendarAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="date"
+                      name="startDate"
+                      value={formData.startDate}
+                      onChange={handleChange}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Payment Method */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Payment Method *
+                  </label>
+                  <div className="relative">
+                    <FaMoneyBill className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <select
+                      name="payment"
+                      value={formData.payment}
+                      onChange={handleChange}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white"
+                      required
+                    >
+                      <option value="">Select payment method</option>
+                      <option value="Cash">Cash</option>
+                      <option value="UPI">UPI</option>
+                    </select>
+                    <FaChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Package Selection Section */}
+            <motion.div variants={itemVariants}>
+              <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <FaDumbbell className="text-blue-500" />
+                Package Selection
+              </h2>
+              
+              {/* Package Duration */}
+              <div className="space-y-3 mb-6">
+                <label className="block text-sm font-medium text-gray-700">
+                  Package Duration *
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {[1, 3, 6, 12].map(month => (
+                    <label key={month} className="relative">
+                      <input
+                        type="radio"
+                        name="package"
+                        value={month}
+                        checked={formData.package === String(month)}
+                        onChange={handleChange}
+                        className="sr-only"
+                      />
+                      <div className={`p-4 border-2 rounded-lg text-center cursor-pointer transition-all ${
+                        formData.package === String(month)
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}>
+                        <div className="font-semibold">{month}</div>
+                        <div className="text-sm text-gray-600">
+                          Month{month > 1 ? 's' : ''}
+                        </div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Cardio Selection */}
+              <div className="space-y-3 mb-6">
+                <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <FaHeart className="text-red-500" />
+                  Cardio Option *
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <label className="relative">
+                    <input
+                      type="radio"
+                      name="cardio"
+                      value="with"
+                      checked={cardio === 'with'}
+                      onChange={() => setCardio('with')}
+                      className="sr-only"
+                    />
+                    <div className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                      cardio === 'with'
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}>
+                      <div className="font-semibold">With Cardio</div>
+                      <div className="text-sm text-gray-600">Includes cardio equipment access</div>
+                    </div>
+                  </label>
+                  <label className="relative">
+                    <input
+                      type="radio"
+                      name="cardio"
+                      value="without"
+                      checked={cardio === 'without'}
+                      onChange={() => setCardio('without')}
+                      className="sr-only"
+                    />
+                    <div className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                      cardio === 'without'
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}>
+                      <div className="font-semibold">Without Cardio</div>
+                      <div className="text-sm text-gray-600">Basic gym equipment only</div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Package Amount */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Package Amount
+                  </label>
+                  <div className="relative">
+                    <FaRupeeSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="number"
+                      name="packageAmount"
+                      value={formData.packageAmount || ''}
+                      readOnly
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Amount Paid *
+                  </label>
+                  <div className="relative">
+                    <FaRupeeSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="number"
+                      name="amountPaid"
+                      value={formData.amountPaid || ''}
+                      onChange={handleChange}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder="Enter amount paid"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Document Upload Section */}
+            <motion.div variants={itemVariants}>
+              <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <FaImage className="text-blue-500" />
+                Document Upload
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Profile Photo */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Profile Photo
+                  </label>
+                  
+                  {/* Method Selector */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => toggleDropdown('profile')}
+                      className="w-full flex items-center justify-between p-3 border border-gray-300 rounded-lg bg-white hover:border-gray-400 transition-all"
+                    >
+                      <span className="flex items-center gap-2">
+                        {imageMethod.profile === 'upload' ? <FaUpload /> : <FaCamera />}
+                        {imageMethod.profile === 'upload' ? 'Upload File' : 'Take Photo'}
+                      </span>
+                      <FaChevronDown className={`transition-transform ${showDropdown.profile ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    <AnimatePresence>
+                      {showDropdown.profile && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => setImageMethodFor('profile', 'upload')}
+                            className="w-full p-3 text-left hover:bg-gray-50 flex items-center gap-2"
+                          >
+                            <FaUpload />
+                            Upload File
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setImageMethodFor('profile', 'camera')}
+                            className="w-full p-3 text-left hover:bg-gray-50 flex items-center gap-2"
+                          >
+                            <FaCamera />
+                            Take Photo
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Input based on method */}
+                  {imageMethod.profile === 'upload' ? (
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={e => handleFileUpload(e, 'profile')}
+                      className="w-full p-2 border border-gray-300 rounded-lg"
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => openCameraFor('profile')}
+                      className="w-full p-3 border border-gray-300 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition-all flex items-center justify-center gap-2"
+                    >
+                      <FaCamera />
+                      Open Camera
+                    </button>
+                  )}
+
+                  {/* Preview and Loader */}
+                  {uploadingProfile && <Loader />}
+                  {profilePicPreview && (
+                    <img 
+                      src={profilePicPreview} 
+                      alt="Profile Preview" 
+                      className="w-full h-32 object-cover rounded-lg border"
+                    />
+                  )}
+                </div>
+
+                {/* Aadhar Front */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Aadhar Front
+                  </label>
+                  
+                  {/* Method Selector */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => toggleDropdown('aadharFront')}
+                      className="w-full flex items-center justify-between p-3 border border-gray-300 rounded-lg bg-white hover:border-gray-400 transition-all"
+                    >
+                      <span className="flex items-center gap-2">
+                        {imageMethod.aadharFront === 'upload' ? <FaUpload /> : <FaCamera />}
+                        {imageMethod.aadharFront === 'upload' ? 'Upload File' : 'Take Photo'}
+                      </span>
+                      <FaChevronDown className={`transition-transform ${showDropdown.aadharFront ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    <AnimatePresence>
+                      {showDropdown.aadharFront && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => setImageMethodFor('aadharFront', 'upload')}
+                            className="w-full p-3 text-left hover:bg-gray-50 flex items-center gap-2"
+                          >
+                            <FaUpload />
+                            Upload File
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setImageMethodFor('aadharFront', 'camera')}
+                            className="w-full p-3 text-left hover:bg-gray-50 flex items-center gap-2"
+                          >
+                            <FaCamera />
+                            Take Photo
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Input based on method */}
+                  {imageMethod.aadharFront === 'upload' ? (
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={e => handleFileUpload(e, 'aadharFront')}
+                      className="w-full p-2 border border-gray-300 rounded-lg"
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => openCameraFor('aadharFront')}
+                      className="w-full p-3 border border-gray-300 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition-all flex items-center justify-center gap-2"
+                    >
+                      <FaCamera />
+                      Open Camera
+                    </button>
+                  )}
+
+                  {/* Preview and Loader */}
+                  {uploadingAadharFront && <Loader />}
+                  {aadharFrontPreview && (
+                    <img 
+                      src={aadharFrontPreview} 
+                      alt="Aadhar Front Preview" 
+                      className="w-full h-32 object-cover rounded-lg border"
+                    />
+                  )}
+                </div>
+
+                {/* Aadhar Back */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Aadhar Back
+                  </label>
+                  
+                  {/* Method Selector */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => toggleDropdown('aadharBack')}
+                      className="w-full flex items-center justify-between p-3 border border-gray-300 rounded-lg bg-white hover:border-gray-400 transition-all"
+                    >
+                      <span className="flex items-center gap-2">
+                        {imageMethod.aadharBack === 'upload' ? <FaUpload /> : <FaCamera />}
+                        {imageMethod.aadharBack === 'upload' ? 'Upload File' : 'Take Photo'}
+                      </span>
+                      <FaChevronDown className={`transition-transform ${showDropdown.aadharBack ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    <AnimatePresence>
+                      {showDropdown.aadharBack && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => setImageMethodFor('aadharBack', 'upload')}
+                            className="w-full p-3 text-left hover:bg-gray-50 flex items-center gap-2"
+                          >
+                            <FaUpload />
+                            Upload File
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setImageMethodFor('aadharBack', 'camera')}
+                            className="w-full p-3 text-left hover:bg-gray-50 flex items-center gap-2"
+                          >
+                            <FaCamera />
+                            Take Photo
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Input based on method */}
+                  {imageMethod.aadharBack === 'upload' ? (
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={e => handleFileUpload(e, 'aadharBack')}
+                      className="w-full p-2 border border-gray-300 rounded-lg"
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => openCameraFor('aadharBack')}
+                      className="w-full p-3 border border-gray-300 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition-all flex items-center justify-center gap-2"
+                    >
+                      <FaCamera />
+                      Open Camera
+                    </button>
+                  )}
+
+                  {/* Preview and Loader */}
+                  {uploadingAadharBack && <Loader />}
+                  {aadharBackPreview && (
+                    <img 
+                      src={aadharBackPreview} 
+                      alt="Aadhar Back Preview" 
+                      className="w-full h-32 object-cover rounded-lg border"
+                    />
+                  )}
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Submit Button */}
+            <motion.div 
+              className="pt-6"
+              variants={itemVariants}
+            >
+              <motion.button
+                type="submit"
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-lg"
+              >
+                Add Member
+              </motion.button>
+            </motion.div>
+          </form>
+        </motion.div>
+      </motion.div>
+    </div>
   );
 };
 
