@@ -1,13 +1,14 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import logActivity from '../../globalFunction/ActivityLog'
 import Swal from 'sweetalert2'
-import { FaHome, FaUsers, FaUserPlus, FaUserTie, FaHotTub, FaBell, FaExchangeAlt, FaListAlt, FaCog, FaSignOutAlt } from 'react-icons/fa'
-import { motion } from 'framer-motion'
+import { FaHome, FaUsers, FaUserPlus, FaUserTie, FaHotTub, FaBell, FaExchangeAlt, FaListAlt, FaCog, FaSignOutAlt, FaBars, FaTimes } from 'react-icons/fa'
+import { motion, AnimatePresence } from 'framer-motion'
 
 const Navbar = () => {
     const isAdmin = localStorage.getItem('admin') === 'true';
     const navigate = useNavigate()
+    const [isOpen, setIsOpen] = useState(false);
 
     const handleClick = (event) => {
         if (event.target.name === '') {
@@ -30,149 +31,162 @@ const Navbar = () => {
         }
         else {
             navigate(`/${event.target.name}`)
+            setIsOpen(false); // Close mobile menu on navigation
         }
     }
 
     // Animation variants for framer-motion
     const navVariants = {
-        hidden: { x: -100, opacity: 0 },
-        visible: { x: 0, opacity: 1, transition: { duration: 0.5 } }
+        hidden: { x: -250, opacity: 0 },
+        visible: { x: 0, opacity: 1, transition: { duration: 0.3 } },
+        exit: { x: -250, opacity: 0, transition: { duration: 0.2 } }
     };
 
     const navItemVariants = {
         hover: { scale: 1.05, backgroundColor: "#374151" }
     };
 
+    // Nav links (to avoid repetition)
+    const navLinks = [
+        { name: 'Dashboard', label: 'Home', icon: <FaHome className="mx-2 text-xl" /> },
+        { name: 'Members', label: 'Member', icon: <FaUsers className="mx-2 text-xl" /> },
+        { name: 'AddMember', label: 'Add Member', icon: <FaUserPlus className="mx-2 text-xl" /> },
+        ...(isAdmin ? [{ name: 'StaffMember', label: 'Staff Member', icon: <FaUserTie className="mx-2 text-xl" /> }] : []),
+        { name: 'steamBath', label: 'Steam Bath', icon: <FaHotTub className="mx-2 text-xl" /> },
+        { name: 'Notification', label: 'Notification', icon: <FaBell className="mx-2 text-xl" /> },
+        { name: 'Transaction', label: 'Transaction', icon: <FaExchangeAlt className="mx-2 text-xl" /> },
+        { name: 'ActivityLogs', label: 'Activity Logs', icon: <FaListAlt className="mx-2 text-xl" /> },
+        ...(isAdmin ? [{ name: 'Setting', label: 'Setting', icon: <FaCog className="mx-2 text-xl" /> }] : []),
+    ];
+
     return (
-        <motion.div
-            className="hidden md:flex flex-col w-64 bg-gray-800"
-            initial="hidden"
-            animate="visible"
-            variants={navVariants}
-        >
-            <div className="flex items-center justify-center h-16 bg-gray-900">
-                <img className='mx-2' src="Logo2.jpeg" alt="logo" width="40" height="40" />
-                <span className="text-white font-bold uppercase text-lg">Royal Fitness</span>
+        <>
+            {/* Mobile Top Bar */}
+            <div className="flex md:hidden items-center justify-between bg-gray-900 h-16 px-4 shadow z-40">
+                <div className="flex items-center gap-2">
+                    <img className='mx-2' src="Logo2.jpeg" alt="logo" width="36" height="36" />
+                    <span className="text-white font-bold uppercase text-lg">Royal Fitness</span>
+                </div>
+                <button
+                    className="text-white text-2xl focus:outline-none"
+                    onClick={() => setIsOpen(true)}
+                    aria-label="Open navigation menu"
+                >
+                    <FaBars />
+                </button>
             </div>
-            <div className="flex flex-col flex-1 overflow-y-auto">
-                <nav className="flex-1 px-2 py-4 bg-gray-800">
-                    <motion.a
-                        href="#"
-                        className="flex items-center px-4 py-2 text-gray-100 rounded-lg mb-1"
-                        name='Dashboard'
-                        onClick={handleClick}
-                        whileHover="hover"
-                        variants={navItemVariants}
-                    >
-                        <FaHome className="mx-2 text-xl" />
-                        Home
-                    </motion.a>
-                    <motion.a
-                        href="#"
-                        className="flex items-center px-4 py-2 text-gray-100 rounded-lg mb-1"
-                        name='Members'
-                        onClick={handleClick}
-                        whileHover="hover"
-                        variants={navItemVariants}
-                    >
-                        <FaUsers className="mx-2 text-xl" />
-                        Member
-                    </motion.a>
-                    <motion.a
-                        href="#"
-                        className="flex items-center px-4 py-2 text-gray-100 rounded-lg mb-1"
-                        name='AddMember'
-                        onClick={handleClick}
-                        whileHover="hover"
-                        variants={navItemVariants}
-                    >
-                        <FaUserPlus className="mx-2 text-xl" />
-                        Add Member
-                    </motion.a>
-                    {isAdmin && (
+
+            {/* Desktop Sidebar */}
+            <motion.div
+                className="hidden md:flex flex-col w-64 bg-gray-800 z-30"
+                initial="hidden"
+                animate="visible"
+                variants={navVariants}
+            >
+                <div className="flex items-center justify-center h-16 bg-gray-900">
+                    <img className='mx-2' src="Logo2.jpeg" alt="logo" width="40" height="40" />
+                    <span className="text-white font-bold uppercase text-lg">Royal Fitness</span>
+                </div>
+                <div className="flex flex-col flex-1 overflow-y-auto">
+                    <nav className="flex-1 px-2 py-4 bg-gray-800">
+                        {navLinks.map(link => (
+                            <motion.a
+                                key={link.name}
+                                href="#"
+                                className="flex items-center px-4 py-2 text-gray-100 rounded-lg mb-1"
+                                name={link.name}
+                                onClick={handleClick}
+                                whileHover="hover"
+                                variants={navItemVariants}
+                            >
+                                {link.icon}
+                                {link.label}
+                            </motion.a>
+                        ))}
                         <motion.a
                             href="#"
-                            className="flex items-center px-4 py-2 text-gray-100 rounded-lg mb-1"
-                            name='StaffMember'
+                            className="flex items-center px-4 py-2 text-gray-100 rounded-lg mt-2"
+                            name=''
                             onClick={handleClick}
                             whileHover="hover"
                             variants={navItemVariants}
                         >
-                            <FaUserTie className="mx-2 text-xl" />
-                            Staff Member
+                            <FaSignOutAlt className="mx-2 text-xl" />
+                            Logout
                         </motion.a>
-                    )}
-                    <motion.a
-                        href="#"
-                        className="flex items-center px-4 py-2 text-gray-100 rounded-lg mb-1"
-                        name='steamBath'
-                        onClick={handleClick}
-                        whileHover="hover"
-                        variants={navItemVariants}
+                    </nav>
+                </div>
+            </motion.div>
+
+            {/* Mobile Slide-in Menu */}
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        className="fixed inset-0 z-50 flex"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
                     >
-                        <FaHotTub className="mx-2 text-xl" />
-                        Steam Bath
-                    </motion.a>
-                    <motion.a
-                        href="#"
-                        className="flex items-center px-4 py-2 text-gray-100 rounded-lg mb-1"
-                        name='Notification'
-                        onClick={handleClick}
-                        whileHover="hover"
-                        variants={navItemVariants}
-                    >
-                        <FaBell className="mx-2 text-xl" />
-                        Notification
-                    </motion.a>
-                    <motion.a
-                        href="#"
-                        className="flex items-center px-4 py-2 text-gray-100 rounded-lg mb-1"
-                        name='Transaction'
-                        onClick={handleClick}
-                        whileHover="hover"
-                        variants={navItemVariants}
-                    >
-                        <FaExchangeAlt className="mx-2 text-xl" />
-                        Transaction
-                    </motion.a>
-                    <motion.a
-                        href="#"
-                        className="flex items-center px-4 py-2 text-gray-100 rounded-lg mb-1"
-                        name='ActivityLogs'
-                        onClick={handleClick}
-                        whileHover="hover"
-                        variants={navItemVariants}
-                    >
-                        <FaListAlt className="mx-2 text-xl" />
-                        Activity Logs
-                    </motion.a>
-                    {isAdmin && (
-                        <motion.a
-                            href="#"
-                            className="flex items-center px-4 py-2 text-gray-100 rounded-lg mb-1"
-                            name='Setting'
-                            onClick={handleClick}
-                            whileHover="hover"
-                            variants={navItemVariants}
+                        {/* Overlay */}
+                        <div
+                            className="absolute inset-0 bg-black bg-opacity-40 backdrop-blur-sm z-50"
+                            onClick={() => setIsOpen(false)}
+                        />
+                        {/* Slide-in Nav */}
+                        <motion.div
+                            className="fixed top-0 left-0 w-64 h-full bg-gray-800 flex flex-col shadow-xl z-50"
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                            variants={navVariants}
                         >
-                            <FaCog className="mx-2 text-xl" />
-                            Setting
-                        </motion.a>
-                    )}
-                    <motion.a
-                        href="#"
-                        className="flex items-center px-4 py-2 text-gray-100 rounded-lg mt-2"
-                        name=''
-                        onClick={handleClick}
-                        whileHover="hover"
-                        variants={navItemVariants}
-                    >
-                        <FaSignOutAlt className="mx-2 text-xl" />
-                        Logout
-                    </motion.a>
-                </nav>
-            </div>
-        </motion.div>
+                            <div className="flex items-center justify-between h-16 bg-gray-900 px-4">
+                                <div className="flex items-center gap-2">
+                                    <img className='mx-2' src="Logo2.jpeg" alt="logo" width="36" height="36" />
+                                    <span className="text-white font-bold uppercase text-lg">Royal Fitness</span>
+                                </div>
+                                <button
+                                    className="text-white text-2xl focus:outline-none"
+                                    onClick={() => setIsOpen(false)}
+                                    aria-label="Close navigation menu"
+                                >
+                                    <FaTimes />
+                                </button>
+                            </div>
+                            <div className="flex flex-col flex-1 overflow-y-auto">
+                                <nav className="flex-1 px-2 py-4 bg-gray-800">
+                                    {navLinks.map(link => (
+                                        <motion.a
+                                            key={link.name}
+                                            href="#"
+                                            className="flex items-center px-4 py-2 text-gray-100 rounded-lg mb-1"
+                                            name={link.name}
+                                            onClick={handleClick}
+                                            whileHover="hover"
+                                            variants={navItemVariants}
+                                        >
+                                            {link.icon}
+                                            {link.label}
+                                        </motion.a>
+                                    ))}
+                                    <motion.a
+                                        href="#"
+                                        className="flex items-center px-4 py-2 text-gray-100 rounded-lg mt-2"
+                                        name=''
+                                        onClick={handleClick}
+                                        whileHover="hover"
+                                        variants={navItemVariants}
+                                    >
+                                        <FaSignOutAlt className="mx-2 text-xl" />
+                                        Logout
+                                    </motion.a>
+                                </nav>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </>
     )
 }
 

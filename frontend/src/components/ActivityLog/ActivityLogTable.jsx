@@ -1,6 +1,16 @@
 import React from 'react'
-import { FaUser, FaRegClock, FaClipboardList } from 'react-icons/fa'
+import { FaUser, FaRegClock, FaClipboardList, FaEnvelope } from 'react-icons/fa'
 import { motion } from 'framer-motion'
+
+// Utility for formatting timestamps
+const formatTimestamp = (timestamp) => {
+  if (!timestamp) return '';
+  const date = new Date(timestamp);
+  return date.toLocaleString(undefined, {
+    year: 'numeric', month: 'short', day: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  });
+};
 
 const ActivityLogTable = ({ data }) => {
   return (
@@ -11,19 +21,18 @@ const ActivityLogTable = ({ data }) => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: index * 0.04 }}
-          className="hover:bg-blue-50 transition"
+          className="hover:bg-blue-50 transition border-b last:border-b-0"
         >
-          <td className="px-6 py-4 whitespace-nowrap text-center font-semibold text-gray-500">
-            {index + 1}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-center flex items-center gap-2 justify-center">
+          <td className="px-4 py-3 whitespace-nowrap text-gray-500 font-semibold text-center">{index + 1}</td>
+          <td className="px-4 py-3 whitespace-nowrap flex items-center gap-2 justify-center text-center">
             <FaUser className="text-blue-400" /> {ele.username}
           </td>
-          <td className="px-6 py-4 whitespace-nowrap text-center flex items-center gap-2 justify-center">
+          <td className="px-4 py-3 whitespace-nowrap text-gray-500 text-center">{ele.email || '-'}</td>
+          <td className="px-4 py-3 whitespace-normal text-gray-700 text-center flex items-center gap-2 justify-center">
             <FaClipboardList className="text-green-500" /> {ele.activity}
           </td>
-          <td className="px-6 py-4 whitespace-nowrap text-center flex items-center gap-2 justify-center">
-            <FaRegClock className="text-gray-400" /> {ele.time_stamp}
+          <td className="px-4 py-3 whitespace-nowrap text-gray-400 text-center">
+            <FaRegClock className="inline mr-1" /> {formatTimestamp(ele.time_stamp)}
           </td>
         </motion.tr>
       ))}

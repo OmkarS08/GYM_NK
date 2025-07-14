@@ -6,12 +6,14 @@ import logActivity from './ActivityLog';
     const transaction_amount_due = package_amount - transaction_paid;
 
     try {
-        const response = await axios.post('http://http://localhost:8081/transaction/updateTransactionMember', {
+        const payload = {
             transaction_id, // Send the transaction ID in the request body
-            transaction_paid, // Send the new transaction paid amount
-            package_amount,
-            transaction_amount_due // Include the calculated due amount (optional, can be calculated on the server)
-        });
+            transaction_paid: Number(transaction_paid), // Ensure number
+            package_amount: Number(package_amount),
+            transaction_amount_due: Number(package_amount) - Number(transaction_paid)
+        };
+        console.log('Sending transaction update payload:', payload);
+        const response = await axios.post('http://localhost:8081/transaction/updateTransactionMember', payload);
 
         console.log('Transaction Updated Successfully:', response.status); // Handle successful response with data (if any)
         logActivity(localStorage.getItem('loginId') ,`transaction for  ${name} has been edited `)

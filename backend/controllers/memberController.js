@@ -61,22 +61,23 @@ const getMember = async (req, res) => {
 // Update member details
 const updateMember = async (req, res) => {
     const id = req.params.id;
-    const { name, age, package: packageMonth, startDate, gender, mobile, payment, cardio } = req.body;
+    const {
+        name, age, package: packageMonth, startDate, gender, mobile, payment,
+        cardio, profilePicUrl, aadharFrontUrl, aadharBackUrl
+    } = req.body;
     try {
         const endDate = calculateEndDate(startDate, Number(packageMonth));
-        await db.collection('gymMembers').doc(id).update({
-            name,
-            age,
-            gender,
-            mobile,
-            package: packageMonth,
-            startDate,
-            endDate,
-            paymentMethod: payment,
-            delete_flag: 0,
-            cardio, // <-- update this field
-        });
-        return res.json("Success");
+        const updateData = {
+            name, age, gender, mobile, package: packageMonth, startDate, endDate,
+            paymentMethod: payment, cardio
+        };
+        if (profilePicUrl) updateData.profilePicUrl = profilePicUrl;
+        if (aadharFrontUrl) updateData.aadharFrontUrl = aadharFrontUrl;
+        if (aadharBackUrl) updateData.aadharBackUrl = aadharBackUrl;
+        await db.collection('gymMembers').doc(id).update(updateData);
+        // Return updated member
+        const updatedDoc = await db.collection('gymMembers').doc(id).get();
+        return res.json({ message: "Success", member: { id, ...updatedDoc.data() } });
     } catch (err) {
         return res.status(500).json("Error");
     }
@@ -141,16 +142,30 @@ const packageExpired = async (req, res) => {
 // Renew member's package
 const renewMember = async (req, res) => {
     const memberId = req.params.id;
-    const { package: packageMonth, startDate, paymentMethod } = req.body;
+    const {
+        package: packageMonth,
+        startDate,
+        paymentMethod,
+        cardio,
+        amountPaid // Add this if you track payment on renewal
+    } = req.body;
     try {
         const endDate = calculateEndDate(startDate, Number(packageMonth));
-        await db.collection('gymMembers').doc(memberId).update({
+        const updateData = {
             package: packageMonth,
             startDate,
             endDate,
             paymentMethod
+        };
+        if (cardio !== undefined) updateData.cardio = cardio;
+        if (amountPaid !== undefined) updateData.amountPaid = amountPaid;
+        await db.collection('gymMembers').doc(memberId).update(updateData);
+        // Optionally, return updated member
+        const updatedDoc = await db.collection('gymMembers').doc(memberId).get();
+        return res.status(200).json({
+            message: "Member renewed successfully",
+            member: { id: memberId, ...updatedDoc.data() }
         });
-        return res.status(200).json({ message: "Member renewed successfully", memberId });
     } catch (err) {
         return res.status(500).json({ message: "Error", error: err.message });
     }

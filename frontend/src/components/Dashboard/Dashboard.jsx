@@ -31,21 +31,19 @@ const Dashboard = () => {
       <div className="flex flex-col flex-1 overflow-y-auto">
         <div className="flex items-center justify-between h-16 bg-white border-b border-gray-200">
         </div>
-        <div className="p-4">
+        <div className="p-2 sm:p-4">
           <DashboardCompo />
-          <div className='w-full flex mx-6 px-2 my-4  justify-center'>
-            <div className='w-90 '>
+          <div className="flex flex-col md:flex-row gap-4 w-full mt-4">
+            <div className="w-full md:w-1/2 flex-1 bg-white rounded-xl shadow p-4 flex items-center justify-center">
               <DashboardPieChart />
             </div>
-            <div className='w-1/2'>
+            <div className="w-full md:w-1/2 flex-1 bg-white rounded-xl shadow p-4 flex items-center justify-center">
               <DashboardTChart />
             </div>
           </div>
         </div>
       </div>
-
     </div>
-
   )
 }
 
