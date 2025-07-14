@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react'
 import Navbar from '../Navbar/Navbar'
 import { useState } from 'react';
-import axios from 'axios';
 import NotificationEndDateTable from './NotificationEndDateTable';
 import api from '../../api/api';
 const Notification = () => {

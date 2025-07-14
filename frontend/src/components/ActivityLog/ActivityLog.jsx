@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import Navbar from '../Navbar/Navbar'
 import ActivityLogTable from './ActivityLogTable'
-import axios from 'axios'
 import { FaHistory } from 'react-icons/fa'
 import { motion } from 'framer-motion'
 import api from '../../api/api'

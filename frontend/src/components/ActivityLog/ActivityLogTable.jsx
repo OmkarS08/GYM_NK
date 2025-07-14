@@ -1,5 +1,5 @@
 import React from 'react'
-import { FaUser, FaRegClock, FaClipboardList, FaEnvelope } from 'react-icons/fa'
+import { FaUser, FaRegClock, FaClipboardList } from 'react-icons/fa'
 import { motion } from 'framer-motion'
 
 // Utility for formatting timestamps

@@ -3,8 +3,8 @@ import React, { useState } from 'react'
 import Swal from 'sweetalert2';
 import EditForm from '../EditMember/EditForm';
 import logActivity from '../../globalFunction/ActivityLog';
-import { FaEdit, FaTrash, FaUserCircle, FaTimesCircle, FaIdCard, FaEye, FaEyeSlash } from 'react-icons/fa';
-import { motion, AnimatePresence } from 'framer-motion';
+import { FaEdit, FaTrash } from 'react-icons/fa';
+import { motion } from 'framer-motion';
 import api from '../../api/api';
 import InfoDialog from './InfoDialog'; // Adjust path as needed
 

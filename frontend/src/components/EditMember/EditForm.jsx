@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import axios from 'axios';
 import logActivity from '../../globalFunction/ActivityLog';
 import updateTransaction from '../../globalFunction/Updatetans';
 import { FaUser, FaPhone, FaVenusMars, FaCalendarAlt, FaMoneyBill, FaRupeeSign, FaWallet, FaIdCard, FaHeart, FaImage, FaCamera, FaUpload, FaChevronDown } from 'react-icons/fa';
@@ -204,29 +203,29 @@ const EditForm = ({ member, handleClose }) => {
       });
   };
 
-  const logTransaction = (memberId, packageAmount, amountPaid) => {
-    const transactionData = {
-      transaction_person_name: memberId,
-      transaction_package_amount: Number(packageAmount),
-      transaction_amount_paid: Number(amountPaid),
-      transaction_amount_due: Number(packageAmount) - Number(amountPaid),
-    };
-
-    return api.post('/transaction/addTranscation', transactionData)
-      .then(res => {
-        if (res.status === 200) {
-          console.log('Transaction logged successfully');
-          return true;
-        } else {
-          console.log('Transaction didn\'t log');
-          return false;
-        }
-      })
-      .catch(err => {
-        console.log(err);
-        return false;
-      });
-  };
+  // const logTransaction = (memberId, packageAmount, amountPaid) => {
+  //   const transactionData = {
+  //     transaction_person_name: memberId,
+  //     transaction_package_amount: Number(packageAmount),
+  //     transaction_amount_paid: Number(amountPaid),
+  //     transaction_amount_due: Number(packageAmount) - Number(amountPaid),
+  //   };
+  //
+  //   return api.post('/transaction/addTranscation', transactionData)
+  //     .then(res => {
+  //       if (res.status === 200) {
+  //         console.log('Transaction logged successfully');
+  //         return true;
+  //       } else {
+  //         console.log('Transaction didn\'t log');
+  //         return false;
+  //       }
+  //     })
+  //     .catch(err => {
+  //       console.log(err);
+  //       return false;
+  //     });
+  // };
 
 
   const handleRenew = () =>{

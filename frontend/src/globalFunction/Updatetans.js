@@ -3,7 +3,6 @@ import logActivity from './ActivityLog';
  const updateTransaction = async (transaction_id,transaction_paid,package_amount,name) =>{
 
 
-    const transaction_amount_due = package_amount - transaction_paid;
 
     try {
         const payload = {
