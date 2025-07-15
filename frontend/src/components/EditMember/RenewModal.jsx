@@ -5,10 +5,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../api/api';
 
 const RenewModal = ({ member, setRenewModalOpen, handleClose }) => {
+ 
+  console.log(member);
+  // Get the latest transaction (if any)
+  const latestTransaction = Array.isArray(member.transactions) && member.transactions.length > 0
+    ? member.transactions[0]
+    : null;
+
   const [selectedPackage, setSelectedPackage] = useState(member.package || '1');
   const [cardio, setCardio] = useState(member.cardio || 'with');
   const [renewPackagePrice, setRenewPackagePrice] = useState(0);
-  const [renewAmountPaid, setRenewAmountPaid] = useState('');
+  const [renewAmountPaid, setRenewAmountPaid] = useState(
+    latestTransaction ? latestTransaction.transaction_amount_paid : ''
+  );
   const [startDate, setStartDate] = useState(member.startDate || '');
   const [payment, setPayment] = useState(member.paymentMethod || '');
 
@@ -21,7 +30,7 @@ const RenewModal = ({ member, setRenewModalOpen, handleClose }) => {
               ? res.data.packagePriceWithCardio
               : res.data.packagePriceWithoutCardio;
             setRenewPackagePrice(price);
-            setRenewAmountPaid(price);
+            setRenewAmountPaid(prev => (prev === '' || prev === renewPackagePrice ? price : prev));
           }
         })
         .catch(err => console.error(err));
@@ -34,15 +43,16 @@ const RenewModal = ({ member, setRenewModalOpen, handleClose }) => {
   const handleStartDateChange = (e) => setStartDate(e.target.value);
   const handlePaymentChange = (e) => setPayment(e.target.value);
 
-  const logTransaction = (memberId, packageAmount, amountPaid) => {
+  const logTransaction = (memberId, packageAmount, amountPaid, paymentMethod) => {
     const transactionData = {
       transaction_person_name: memberId,
       transaction_package_amount: Number(packageAmount),
       transaction_amount_paid: Number(amountPaid),
       transaction_amount_due: Number(packageAmount) - Number(amountPaid),
+      payment_method: paymentMethod // <-- ensure this is set
     };
-
-    return api.post('/transaction/addTranscation', transactionData)
+    console.log(transactionData);
+    return api.post('/transaction/addTransaction', transactionData)
       .then(res => {
         if (res.status === 200) {
           console.log('Transaction logged successfully');
@@ -88,11 +98,13 @@ const RenewModal = ({ member, setRenewModalOpen, handleClose }) => {
               }
             )
             .then(async (res) => {
+              console.log(res)
               if (res.status === 200) {
                 const transactionLogged = await logTransaction(
-                  res.data.memberId,
+                  res.data.member.id,
                   renewPackagePrice,
-                  renewAmountPaid
+                  renewAmountPaid,
+                  payment // <-- pass payment here
                 );
                 if (transactionLogged) {
                   Swal.fire({

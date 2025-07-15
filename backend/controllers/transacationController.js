@@ -9,7 +9,7 @@ const addTransaction = async (req, res) => {
             transaction_package_amount,
             transaction_amount_paid,
             transaction_amount_due,
-            payment_method, // <-- add this
+            payment_method,
             transaction_time_stamp: new Date()
         });
         return res.json("Success");
