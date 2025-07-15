@@ -32,7 +32,7 @@ const RenewModal = ({ member, setRenewModalOpen, handleClose }) => {
               ? res.data.packagePriceWithCardio
               : res.data.packagePriceWithoutCardio;
             setRenewPackagePrice(price);
-            setRenewAmountPaid(prev => (prev === '' || prev === renewPackagePrice ? price : prev));
+            setRenewAmountPaid(prev => (prev === '' || prev === price ? price : prev));
           }
         })
         .catch(err => console.error(err));

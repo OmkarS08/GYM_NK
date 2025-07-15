@@ -20,6 +20,7 @@ const EditForm = ({ member, handleClose }) => {
     latestTransaction ? latestTransaction.transaction_package_amount : ''
   );
   const [isRenewModalOpen, setRenewModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   console.log(member);
   const [formData, setFormData] = useState({
     name: member.name,
@@ -183,6 +184,7 @@ const EditForm = ({ member, handleClose }) => {
       setAadharError('Aadhar must be a 12-digit number');
       return;
     }
+    setLoading(true);
     api.post(`/members/updateMember/${member.id}`, formData)
       .then(res => {
         if (res.status === 200) {
@@ -211,7 +213,8 @@ const EditForm = ({ member, handleClose }) => {
       })
       .catch(err => {
         console.error('Error:', err);
-      });
+      })
+      .finally(() => setLoading(false));
   };
 
   // const logTransaction = (memberId, packageAmount, amountPaid) => {
@@ -700,10 +703,11 @@ const EditForm = ({ member, handleClose }) => {
                   <motion.button
                     type="button"
                     onClick={handleEditSubmit}
-                    className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 flex items-center gap-2"
-                    whileHover={{ scale: 1.05 }}
+                    className={`bg-blue-500 text-white px-6 py-2 rounded-lg flex items-center gap-2 ${loading ? 'opacity-60 cursor-not-allowed' : 'hover:bg-blue-600'}`}
+                    whileHover={loading ? {} : { scale: 1.05 }}
+                    disabled={loading}
                   >
-                    Save
+                    {loading ? <Loader size={20} color="#fff" /> : 'Save'}
                   </motion.button>
                   <motion.button
                     type="button"
