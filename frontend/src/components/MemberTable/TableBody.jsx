@@ -6,17 +6,14 @@ import logActivity from '../../globalFunction/ActivityLog';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import api from '../../api/api';
-import InfoDialog from './InfoDialog'; // Adjust path as needed
+import { useMemberDialog } from '../../context/MemberDialogContext';
 
 const TableBody = ({ data }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentMember, setCurrentMember] = useState(null);
   const [hoveredBtn, setHoveredBtn] = useState(null);
 
-  // For member info dialog
-  const [infoDialogOpen, setInfoDialogOpen] = useState(false);
-  const [infoMember, setInfoMember] = useState(null);
-  const [showAadhar, setShowAadhar] = useState(false);
+  const { openDialog } = useMemberDialog();
 
   const handleEdit = (member) => {
     setCurrentMember(member);
@@ -69,14 +66,7 @@ const TableBody = ({ data }) => {
 
   // Open info dialog
   const handleNameClick = (member) => {
-    setInfoMember(member);
-    setInfoDialogOpen(true);
-  };
-
-  // Close info dialog
-  const handleCloseInfoDialog = () => {
-    setInfoDialogOpen(false);
-    setInfoMember(null);
+    openDialog(member);
   };
 
   return (
@@ -157,22 +147,6 @@ const TableBody = ({ data }) => {
         ))
       )}
 
-      {/* Member Info Dialog */}
-      <InfoDialog
-        open={infoDialogOpen}
-        member={infoMember}
-        showAadhar={showAadhar}
-        setShowAadhar={setShowAadhar}
-        onClose={handleCloseInfoDialog}
-      />
-
-      {isModalOpen && (
-        <EditForm
-          member={currentMember}
-          handleChange={handleChange}
-          handleClose={() => setIsModalOpen(false)}
-        />
-      )}
     </>
   )
 }

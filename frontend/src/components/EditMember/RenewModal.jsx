@@ -3,6 +3,7 @@ import Swal from 'sweetalert2';
 import { FaUser, FaRupeeSign, FaMoneyBill, FaCalendarAlt, FaWallet, FaHeart } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../api/api';
+import Loader from '../Loader/Loader';
 
 const RenewModal = ({ member, setRenewModalOpen, handleClose }) => {
  
@@ -20,6 +21,7 @@ const RenewModal = ({ member, setRenewModalOpen, handleClose }) => {
   );
   const [startDate, setStartDate] = useState(member.startDate || '');
   const [payment, setPayment] = useState(member.paymentMethod || '');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (selectedPackage) {
@@ -88,6 +90,8 @@ const RenewModal = ({ member, setRenewModalOpen, handleClose }) => {
           </h2>
           <form onSubmit={e => {
             e.preventDefault();
+            if (loading) return;
+            setLoading(true);
             api.post(
               `/members/renewMember/${member.id}`,
               {
@@ -106,6 +110,25 @@ const RenewModal = ({ member, setRenewModalOpen, handleClose }) => {
                   renewAmountPaid,
                   payment // <-- pass payment here
                 );
+                // Append renewal history
+                const today = new Date();
+                const renewalDate = today.toISOString().slice(0, 10);
+                const packageName = `${selectedPackage}-Month Plan`;
+                const amount = renewPackagePrice;
+                const staff = localStorage.getItem('loginName') || '';
+                const notes = '';
+                // Use endDate from backend response if available, else calculate
+                const endDate = res.data.member.endDate || '';
+                await api.post(`/members/appendRenewalHistory/${member.id}`, {
+                  renewalDate,
+                  packageName,
+                  amount,
+                  startDate,
+                  endDate,
+                  paymentMethod: payment,
+                  staff,
+                  notes
+                });
                 if (transactionLogged) {
                   Swal.fire({
                     title: 'Success!',
@@ -122,7 +145,8 @@ const RenewModal = ({ member, setRenewModalOpen, handleClose }) => {
             })
             .catch((err) => {
               console.error('Error:', err);
-            });
+            })
+            .finally(() => setLoading(false));
           }}>
             {/* Package selection */}
             <div className="mb-4">
@@ -250,16 +274,18 @@ const RenewModal = ({ member, setRenewModalOpen, handleClose }) => {
             <div className="flex justify-center mt-6 gap-3">
               <motion.button
                 type="submit"
-                className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-500 flex items-center gap-2"
-                whileHover={{ scale: 1.05 }}
+                className={`bg-green-600 text-white px-6 py-2 rounded-lg flex items-center gap-2 ${loading ? 'opacity-60 cursor-not-allowed' : 'hover:bg-green-500'}`}
+                whileHover={loading ? {} : { scale: 1.05 }}
+                disabled={loading}
               >
-                Renew
+                {loading ? <Loader size={20} color="#fff" /> : 'Renew'}
               </motion.button>
               <motion.button
                 type="button"
                 onClick={() => setRenewModalOpen(false)}
                 className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-500 flex items-center gap-2"
                 whileHover={{ scale: 1.05 }}
+                disabled={loading}
               >
                 Cancel
               </motion.button>

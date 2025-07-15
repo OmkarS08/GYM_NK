@@ -4,6 +4,7 @@ import { FaEdit, FaTrash, FaMoneyBillWave, FaMobileAlt } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import { useMemberDialog } from '../../context/MemberDialogContext';
 
 const DeleteDialog = ({ open, onClose, onConfirm, loading }) => {
   const [password, setPassword] = useState('');
@@ -52,6 +53,7 @@ const TransactionTableData = ({ data, onDelete }) => {
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [deleteDialog, setDeleteDialog] = useState({ open: false, transaction: null });
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const { openDialog } = useMemberDialog();
 
   const handleEditClick = (transaction) => setSelectedTransaction(transaction);
 
@@ -62,6 +64,16 @@ const TransactionTableData = ({ data, onDelete }) => {
 
   const handleCloseDelete = () =>
     setDeleteDialog({ open: false, transaction: null });
+
+  const handleNameClick = (transaction) => {
+    openDialog({
+      name: transaction.member_name,
+      package: transaction.member_package,
+      endDate: transaction.endDate,
+      startDate1: transaction.startDate,
+      ...transaction
+    });
+  };
 
   const handleConfirmDelete = async (password) => {
     setDeleteLoading(true);
@@ -118,7 +130,12 @@ const TransactionTableData = ({ data, onDelete }) => {
             exit={{ opacity: 0, y: -10 }}
             className="hover:bg-gray-50 transition"
           >
-            <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-800">{ele.member_name}</td>
+            <td
+              className="px-6 py-4 whitespace-nowrap font-medium text-blue-700 cursor-pointer hover:underline"
+              onClick={() => handleNameClick(ele)}
+            >
+              {ele.member_name}
+            </td>
             <td className="px-6 py-4 whitespace-nowrap text-gray-600">{ele.member_package} months</td>
             <td className="px-6 py-4 whitespace-nowrap text-gray-600">
               {ele.startDate ? new Date(ele.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}
