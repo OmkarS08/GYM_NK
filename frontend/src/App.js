@@ -13,53 +13,71 @@ import Transaction from "./components/Transaction/Transaction";
 import NotFoundPage from "./components/NotFoundPage/NotFoundPage";
 import { WebcamProvider } from "./context/WebcamContext";
 import WebcamModal from "./components/WebcamCapture/WebcamModal";
+import { MemberDialogProvider, useMemberDialog } from './context/MemberDialogContext';
+import InfoDialog from './components/MemberTable/InfoDialog';
+
+function GlobalInfoDialog() {
+  const { open, member, showAadhar, setShowAadhar, closeDialog } = useMemberDialog();
+  return (
+    <InfoDialog
+      open={open}
+      member={member}
+      showAadhar={showAadhar}
+      setShowAadhar={setShowAadhar}
+      onClose={closeDialog}
+    />
+  );
+}
 
 function App() {
   return (
-    <WebcamProvider>
-      <div>
-        <BrowserRouter>
-          <Routes>
-            <Route path='/' element={<Login />}></Route>
-            <Route path='/Dashboard' element={
-              <PrivateComponent>
-                <Dashboard />
-              </PrivateComponent>
-            }></Route>
-            <Route path='/Members' element={
-              <PrivateComponent>
-                <Members/>
-              </PrivateComponent>} >
-              </Route>
-            <Route path='/AddMember' element={<PrivateComponent>
-                <AddMember />
-              </PrivateComponent>}></Route>
-            <Route path='/Notification' element={<PrivateComponent>
-                <Notification/>
-              </PrivateComponent>}></Route>
-              <Route path='/steamBath' element={<PrivateComponent>
-                <SteamBath/>
-              </PrivateComponent>}></Route>
-              <Route path='/Transaction' element={<PrivateComponent>
-                <Transaction/>
-              </PrivateComponent>}></Route>
-            <Route path='/ActivityLogs' element={<PrivateComponent>
-                <ActivityLog/>
-              </PrivateComponent>}></Route>
-            <Route path='/Setting' element={<PrivateComponent>
-                <Setting/>
-              </PrivateComponent>}></Route>
-              <Route path='/StaffMember' element={<PrivateComponent>
-                <StaffMemberPage/>
-              </PrivateComponent>}></Route>
+    <MemberDialogProvider>
+      <WebcamProvider>
+        <div>
+          <BrowserRouter>
+            <Routes>
+              <Route path='/' element={<Login />}></Route>
+              <Route path='/Dashboard' element={
+                <PrivateComponent>
+                  <Dashboard />
+                </PrivateComponent>
+              }></Route>
+              <Route path='/Members' element={
+                <PrivateComponent>
+                  <Members/>
+                </PrivateComponent>} >
+                </Route>
+              <Route path='/AddMember' element={<PrivateComponent>
+                  <AddMember />
+                </PrivateComponent>}></Route>
+              <Route path='/Notification' element={<PrivateComponent>
+                  <Notification/>
+                </PrivateComponent>}></Route>
+                <Route path='/steamBath' element={<PrivateComponent>
+                  <SteamBath/>
+                </PrivateComponent>}></Route>
+                <Route path='/Transaction' element={<PrivateComponent>
+                  <Transaction/>
+                </PrivateComponent>}></Route>
+              <Route path='/ActivityLogs' element={<PrivateComponent>
+                  <ActivityLog/>
+                </PrivateComponent>}></Route>
+              <Route path='/Setting' element={<PrivateComponent>
+                  <Setting/>
+                </PrivateComponent>}></Route>
+                <Route path='/StaffMember' element={<PrivateComponent>
+                  <StaffMemberPage/>
+                </PrivateComponent>}></Route>
               <Route path='/*' element={<PrivateComponent>
                 <NotFoundPage/>
               </PrivateComponent>}></Route>
-          </Routes>
-        </BrowserRouter>
-        <WebcamModal />
-      </div>
-    </WebcamProvider>
+            </Routes>
+          </BrowserRouter>
+          <WebcamModal />
+          <GlobalInfoDialog />
+        </div>
+      </WebcamProvider>
+    </MemberDialogProvider>
   );
 }
 

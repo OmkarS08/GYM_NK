@@ -3,7 +3,7 @@ const { addTransaction ,getTransaction,getCountTrans ,updateTransaction,updateTr
 const router = express.Router();
 
 
-router.post('/addTranscation' , addTransaction);
+router.post('/addTransaction' , addTransaction);
 router.post('/updateTransaction/:id', updateTransaction);
 router.post('/updateTransactionMember',updateTransactionMember)
 router.get('/getTransaction', getTransaction );

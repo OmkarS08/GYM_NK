@@ -1,6 +1,7 @@
 const db = require('../config/firebaseConfig');
 const calculateEndDate = require('../utils/dateUtil');
 const { format } = require('date-fns');
+const admin = require('firebase-admin');
 
 // Add a new member
 const addMember = async (req, res) => {
@@ -45,6 +46,7 @@ const deleteMember = async (req, res) => {
 // Get all members (excluding deleted)
 const getMember = async (req, res) => {
     try {
+        // Fetch all members
         const snapshot = await db.collection('gymMembers').where('delete_flag', '!=', 1).orderBy('createdAt', 'desc').get();
         const members = snapshot.docs.map(doc => ({
             id: doc.id,
@@ -52,7 +54,32 @@ const getMember = async (req, res) => {
             startDate1: format(new Date(doc.data().startDate), 'dd-MMM-yyyy'),
             endDate: format(new Date(doc.data().endDate), 'dd-MMM-yyyy')
         }));
-        return res.json(members);
+
+        // Fetch all transactions
+        const transSnap = await db.collection('transaction').get();
+        const transactions = transSnap.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+
+        // Club transactions with members
+        const membersWithTransactions = members.map(member => {
+            let memberTransactions = transactions.filter(
+                t => t.transaction_person_name === member.id
+            );
+            // Sort by transaction_time_stamp descending
+            memberTransactions = memberTransactions.sort((a, b) => {
+                const aTime = a.transaction_time_stamp?._seconds || 0;
+                const bTime = b.transaction_time_stamp?._seconds || 0;
+                return bTime - aTime;
+            });
+            return {
+                ...member,
+                transactions: memberTransactions
+            };
+        });
+
+        return res.json(membersWithTransactions);
     } catch (err) {
         return res.status(500).json({ message: "Error", error: err.message });
     }
@@ -171,6 +198,39 @@ const renewMember = async (req, res) => {
     }
 };
 
+// Append a renewal history entry to a member
+const appendRenewalHistory = async (req, res) => {
+    const memberId = req.params.id;
+    const {
+        renewalDate,
+        packageName,
+        amount,
+        startDate,
+        endDate,
+        paymentMethod,
+        staff,
+        notes
+    } = req.body;
+    try {
+        const historyEntry = {
+            renewalDate,
+            packageName,
+            amount,
+            startDate,
+            endDate,
+            paymentMethod,
+            staff,
+            notes
+        };
+        await db.collection('gymMembers').doc(memberId).update({
+            history: admin.firestore.FieldValue.arrayUnion(historyEntry)
+        });
+        res.status(200).json({ message: "Renewal history appended successfully" });
+    } catch (err) {
+        res.status(500).json({ message: "Error appending history", error: err.message });
+    }
+};
+
 // Get only member names (for dropdowns etc.)
 const getOnlyMember = async (req, res) => {
     try {
@@ -193,5 +253,6 @@ module.exports = {
     packageEnding,
     packageExpired,
     getOnlyMember,
-    renewMember
+    renewMember,
+    appendRenewalHistory
 };

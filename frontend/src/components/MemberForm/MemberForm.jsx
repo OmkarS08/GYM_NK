@@ -56,6 +56,7 @@ const MemberForm = () => {
     aadharFront: false,
     aadharBack: false
   });
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
   const { openWebcamModal } = useWebcam();
@@ -91,7 +92,7 @@ const MemberForm = () => {
       payment_method: formData.payment,
     };
 
-    return api.post('/transaction/addTranscation', transactionData)
+    return api.post('/transaction/addTransaction', transactionData)
       .then(res => {
         if (res.status === 200) {
           console.log('Transaction logged successfully');
@@ -242,7 +243,7 @@ const MemberForm = () => {
     if (!validateAadhar(formData.aadhar)) {
       return;
     }
-
+    setLoading(true);
     api.post('/members/AddMember', {
       ...formData,
       profilePicUrl,
@@ -265,7 +266,8 @@ const MemberForm = () => {
           console.log(res);
         }
       })
-      .catch(err => console.log(err));
+      .catch(err => console.log(err))
+      .finally(() => setLoading(false));
   };
 
   // Animation variants
@@ -861,9 +863,10 @@ const MemberForm = () => {
                 variants={buttonVariants}
                 whileHover="hover"
                 whileTap="tap"
-                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-lg"
+                className={`w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-4 px-6 rounded-lg font-semibold text-lg transition-all duration-200 shadow-lg ${loading ? 'opacity-60 cursor-not-allowed' : 'hover:from-blue-600 hover:to-blue-700'}`}
+                disabled={loading}
               >
-                Add Member
+                {loading ? <Loader size={24} color="#fff" /> : 'Add Member'}
               </motion.button>
             </motion.div>
           </form>

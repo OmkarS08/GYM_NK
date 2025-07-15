@@ -1,9 +1,24 @@
 import React from "react";
 import { FaTimesCircle, FaUserCircle, FaIdCard, FaEye, FaEyeSlash } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
+import HistoryModal from "./HistoryModal";
 
 const InfoDialog = ({ open, member, showAadhar, setShowAadhar, onClose }) => {
+  const [showHistory, setShowHistory] = useState(false);
+
   if (!open || !member) return null;
+
+  if (showHistory) {
+    return (
+      <HistoryModal
+        open={showHistory}
+        history={member.history || []}
+        onBack={() => setShowHistory(false)}
+        onClose={onClose}
+      />
+    );
+  }
 
   return (
     <AnimatePresence>
@@ -17,8 +32,8 @@ const InfoDialog = ({ open, member, showAadhar, setShowAadhar, onClose }) => {
           initial={{ scale: 0.95, opacity: 0, y: 40 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 40 }}
-          transition={{ type: "spring", stiffness: 300, damping: 25 }}
-          className="relative w-full max-w-md sm:max-w-lg mx-auto bg-white rounded-2xl shadow-2xl border border-blue-100 p-4 sm:p-8 overflow-y-auto max-h-[90vh]"
+          transition={{ type: "spring", stiffness: 300, damping: 22 }}
+          className="relative w-full max-w-md sm:max-w-lg mx-auto bg-white rounded-2xl shadow-2xl border border-gray-200 p-4 sm:p-8 overflow-y-auto max-h-[90vh]"
         >
           {/* Close Button */}
           <button
@@ -44,7 +59,7 @@ const InfoDialog = ({ open, member, showAadhar, setShowAadhar, onClose }) => {
             ) : (
               <FaUserCircle className="text-blue-500 mb-2" size={60} />
             )}
-            <h2 className="text-2xl font-bold text-blue-700">{member.name}</h2>
+            <h2 className="text-2xl font-bold text-blue-700 tracking-wide cursor-pointer">{member.name}</h2>
             <span className="text-xs text-gray-400">{member.email || "Member"}</span>
             {/* Aadhar Card Button */}
             {member.aadharFrontUrl && (
@@ -127,6 +142,14 @@ const InfoDialog = ({ open, member, showAadhar, setShowAadhar, onClose }) => {
                 <div>{member.paymentMethod}</div>
               </>
             )}
+          </div>
+          <div className="flex justify-end mt-4">
+            <button
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition font-semibold"
+              onClick={() => setShowHistory(true)}
+            >
+              View History
+            </button>
           </div>
         </motion.div>
       </motion.div>

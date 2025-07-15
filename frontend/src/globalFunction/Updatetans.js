@@ -1,10 +1,6 @@
 import api from '../api/api';
 import logActivity from './ActivityLog';
- const updateTransaction = async (transaction_id,transaction_paid,package_amount,name) =>{
-
-
-
-
+const updateTransaction = async (transaction_id, transaction_paid, package_amount, name) => {
     try {
         const payload = {
             transaction_id, // Send the transaction ID in the request body
@@ -14,14 +10,11 @@ import logActivity from './ActivityLog';
         };
         console.log('Sending transaction update payload:', payload);
         const response = await api.post('/transaction/updateTransactionMember', payload);
-
         console.log('Transaction Updated Successfully:', response.status); // Handle successful response with data (if any)
-        logActivity(localStorage.getItem('loginId') ,`transaction for  ${name} has been edited `)
+        logActivity(localStorage.getItem('loginId'), `transaction for  ${name} has been edited `)
     } catch (error) {
         console.error('Error Updating Transaction activity:', error); // Handle errors
     }
- 
-
 }
 
 export default updateTransaction;

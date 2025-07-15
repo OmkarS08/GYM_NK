@@ -3,14 +3,25 @@ import Swal from 'sweetalert2';
 import { FaUser, FaRupeeSign, FaMoneyBill, FaCalendarAlt, FaWallet, FaHeart } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../api/api';
+import Loader from '../Loader/Loader';
 
 const RenewModal = ({ member, setRenewModalOpen, handleClose }) => {
+ 
+  console.log(member);
+  // Get the latest transaction (if any)
+  const latestTransaction = Array.isArray(member.transactions) && member.transactions.length > 0
+    ? member.transactions[0]
+    : null;
+
   const [selectedPackage, setSelectedPackage] = useState(member.package || '1');
   const [cardio, setCardio] = useState(member.cardio || 'with');
   const [renewPackagePrice, setRenewPackagePrice] = useState(0);
-  const [renewAmountPaid, setRenewAmountPaid] = useState('');
+  const [renewAmountPaid, setRenewAmountPaid] = useState(
+    latestTransaction ? latestTransaction.transaction_amount_paid : ''
+  );
   const [startDate, setStartDate] = useState(member.startDate || '');
   const [payment, setPayment] = useState(member.paymentMethod || '');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (selectedPackage) {
@@ -21,7 +32,7 @@ const RenewModal = ({ member, setRenewModalOpen, handleClose }) => {
               ? res.data.packagePriceWithCardio
               : res.data.packagePriceWithoutCardio;
             setRenewPackagePrice(price);
-            setRenewAmountPaid(price);
+            setRenewAmountPaid(prev => (prev === '' || prev === price ? price : prev));
           }
         })
         .catch(err => console.error(err));
@@ -34,15 +45,16 @@ const RenewModal = ({ member, setRenewModalOpen, handleClose }) => {
   const handleStartDateChange = (e) => setStartDate(e.target.value);
   const handlePaymentChange = (e) => setPayment(e.target.value);
 
-  const logTransaction = (memberId, packageAmount, amountPaid) => {
+  const logTransaction = (memberId, packageAmount, amountPaid, paymentMethod) => {
     const transactionData = {
       transaction_person_name: memberId,
       transaction_package_amount: Number(packageAmount),
       transaction_amount_paid: Number(amountPaid),
       transaction_amount_due: Number(packageAmount) - Number(amountPaid),
+      payment_method: paymentMethod // <-- ensure this is set
     };
-
-    return api.post('/transaction/addTranscation', transactionData)
+    console.log(transactionData);
+    return api.post('/transaction/addTransaction', transactionData)
       .then(res => {
         if (res.status === 200) {
           console.log('Transaction logged successfully');
@@ -78,6 +90,8 @@ const RenewModal = ({ member, setRenewModalOpen, handleClose }) => {
           </h2>
           <form onSubmit={e => {
             e.preventDefault();
+            if (loading) return;
+            setLoading(true);
             api.post(
               `/members/renewMember/${member.id}`,
               {
@@ -88,12 +102,33 @@ const RenewModal = ({ member, setRenewModalOpen, handleClose }) => {
               }
             )
             .then(async (res) => {
+              console.log(res)
               if (res.status === 200) {
                 const transactionLogged = await logTransaction(
-                  res.data.memberId,
+                  res.data.member.id,
                   renewPackagePrice,
-                  renewAmountPaid
+                  renewAmountPaid,
+                  payment // <-- pass payment here
                 );
+                // Append renewal history
+                const today = new Date();
+                const renewalDate = today.toISOString().slice(0, 10);
+                const packageName = `${selectedPackage}-Month Plan`;
+                const amount = renewPackagePrice;
+                const staff = localStorage.getItem('loginName') || '';
+                const notes = '';
+                // Use endDate from backend response if available, else calculate
+                const endDate = res.data.member.endDate || '';
+                await api.post(`/members/appendRenewalHistory/${member.id}`, {
+                  renewalDate,
+                  packageName,
+                  amount,
+                  startDate,
+                  endDate,
+                  paymentMethod: payment,
+                  staff,
+                  notes
+                });
                 if (transactionLogged) {
                   Swal.fire({
                     title: 'Success!',
@@ -110,7 +145,8 @@ const RenewModal = ({ member, setRenewModalOpen, handleClose }) => {
             })
             .catch((err) => {
               console.error('Error:', err);
-            });
+            })
+            .finally(() => setLoading(false));
           }}>
             {/* Package selection */}
             <div className="mb-4">
@@ -238,16 +274,18 @@ const RenewModal = ({ member, setRenewModalOpen, handleClose }) => {
             <div className="flex justify-center mt-6 gap-3">
               <motion.button
                 type="submit"
-                className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-500 flex items-center gap-2"
-                whileHover={{ scale: 1.05 }}
+                className={`bg-green-600 text-white px-6 py-2 rounded-lg flex items-center gap-2 ${loading ? 'opacity-60 cursor-not-allowed' : 'hover:bg-green-500'}`}
+                whileHover={loading ? {} : { scale: 1.05 }}
+                disabled={loading}
               >
-                Renew
+                {loading ? <Loader size={20} color="#fff" /> : 'Renew'}
               </motion.button>
               <motion.button
                 type="button"
                 onClick={() => setRenewModalOpen(false)}
                 className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-500 flex items-center gap-2"
                 whileHover={{ scale: 1.05 }}
+                disabled={loading}
               >
                 Cancel
               </motion.button>
