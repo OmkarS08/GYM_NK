@@ -45,6 +45,7 @@ const deleteMember = async (req, res) => {
 // Get all members (excluding deleted)
 const getMember = async (req, res) => {
     try {
+        // Fetch all members
         const snapshot = await db.collection('gymMembers').where('delete_flag', '!=', 1).orderBy('createdAt', 'desc').get();
         const members = snapshot.docs.map(doc => ({
             id: doc.id,
@@ -52,7 +53,26 @@ const getMember = async (req, res) => {
             startDate1: format(new Date(doc.data().startDate), 'dd-MMM-yyyy'),
             endDate: format(new Date(doc.data().endDate), 'dd-MMM-yyyy')
         }));
-        return res.json(members);
+
+        // Fetch all transactions
+        const transSnap = await db.collection('transaction').get();
+        const transactions = transSnap.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+
+        // Club transactions with members
+        const membersWithTransactions = members.map(member => {
+            const memberTransactions = transactions.filter(
+                t => t.transaction_person_name === member.id
+            );
+            return {
+                ...member,
+                transactions: memberTransactions // or latest: memberTransactions[0]
+            };
+        });
+
+        return res.json(membersWithTransactions);
     } catch (err) {
         return res.status(500).json({ message: "Error", error: err.message });
     }

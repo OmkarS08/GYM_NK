@@ -11,19 +11,27 @@ import RenewModal from './RenewModal';
 const EditForm = ({ member, handleClose }) => {
 
 
-  const [packageAmount, setPackageAmount] = useState(member.transaction_package_amount)
+  // Get the latest transaction (if any)
+  const latestTransaction = Array.isArray(member.transactions) && member.transactions.length > 0
+    ? member.transactions[0]
+    : null;
+
+  const [packageAmount, setPackageAmount] = useState(
+    latestTransaction ? latestTransaction.transaction_package_amount : ''
+  );
   const [isRenewModalOpen, setRenewModalOpen] = useState(false);
+  console.log(member);
   const [formData, setFormData] = useState({
     name: member.name,
     age: member.age,
     mobile: member.mobile,
     gender: member.gender,
-    package: member.package,
+    package: member.package, // this will select the correct radio
     startDate: member.startDate,
     payment: member.paymentMethod,
-    package_amount: member.transaction_package_amount,
-    transaction_id: member.transaction_id,
-    transaction_paid: member.transaction_amount_paid,
+    package_amount: latestTransaction ? latestTransaction.transaction_package_amount : '',
+    transaction_id: latestTransaction ? latestTransaction.id : '',
+    transaction_paid: latestTransaction ? latestTransaction.transaction_amount_paid : '',
     cardio: member.cardio || 'with',
     aadhar: member.aadhar || '',
     profilePicUrl: member.profilePicUrl || '',
@@ -62,8 +70,7 @@ const EditForm = ({ member, handleClose }) => {
             setPackageAmount(price);
             setFormData(prev => ({
               ...prev,
-              packageAmount: price,
-              amountPaid: prev.amountPaid || price
+              package_amount: price // Only update package_amount, not transaction_paid
             }));
           }
         })
@@ -155,6 +162,10 @@ const EditForm = ({ member, handleClose }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    let val = value;
+    if (name === 'package_amount' || name === 'transaction_paid') {
+      val = value === '' ? '' : Number(value);
+    }
     if (name === 'aadhar') {
       if (!/^\d{0,12}$/.test(value)) return;
       if (value.length === 12 && !/^\d{12}$/.test(value)) {
@@ -163,7 +174,7 @@ const EditForm = ({ member, handleClose }) => {
         setAadharError('');
       }
     }
-    setFormData({ ...formData, [name]: value });
+    setFormData({ ...formData, [name]: val });
   };
 
   const handleEditSubmit = (e) => {
@@ -244,10 +255,10 @@ const EditForm = ({ member, handleClose }) => {
             exit={{ opacity: 0 }}
           >
             <motion.div
-              initial={{ scale: 0.8, opacity: 0, y: 40 }}
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.8, opacity: 0, y: 40 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              transition={{ type: "spring", stiffness: 200, damping: 20 }}
               className="bg-white border rounded-2xl px-8 py-7 mx-auto my-10 max-w-2xl w-full shadow-2xl max-h-[80vh] overflow-y-auto"
             >
               <h2 className="text-2xl font-bold mb-6 text-center text-blue-700 flex items-center justify-center gap-2">
@@ -354,51 +365,6 @@ const EditForm = ({ member, handleClose }) => {
                     {aadharError && (
                       <p className="text-red-500 text-sm mt-1">{aadharError}</p>
                     )}
-                  </div>
-
-                  {/* Cardio */}
-                  <div className="mb-4 col-span-2">
-                    <label className="block text-gray-700 font-semibold mb-1 flex items-center gap-2">
-                      <FaHeart /> Cardio Option
-                    </label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <label className="relative">
-                        <input
-                          type="radio"
-                          name="cardio"
-                          value="with"
-                          checked={formData.cardio === 'with'}
-                          onChange={handleChange}
-                          className="sr-only"
-                        />
-                        <div className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                          formData.cardio === 'with'
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}>
-                          <div className="font-semibold">With Cardio</div>
-                          <div className="text-sm text-gray-600">Includes cardio equipment access</div>
-                        </div>
-                      </label>
-                      <label className="relative">
-                        <input
-                          type="radio"
-                          name="cardio"
-                          value="without"
-                          checked={formData.cardio === 'without'}
-                          onChange={handleChange}
-                          className="sr-only"
-                        />
-                        <div className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                          formData.cardio === 'without'
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}>
-                          <div className="font-semibold">Without Cardio</div>
-                          <div className="text-sm text-gray-600">Basic gym equipment only</div>
-                        </div>
-                      </label>
-                    </div>
                   </div>
 
                   {/* Profile Photo Upload */}
@@ -594,13 +560,58 @@ const EditForm = ({ member, handleClose }) => {
                     )}
                   </div>
 
+                  {/* Cardio Option */}
+                  <div className="mb-4 col-span-2">
+                    <label className="block text-gray-700 font-semibold mb-1 flex items-center gap-2">
+                      <FaHeart /> Cardio Option
+                    </label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <label className="relative">
+                        <input
+                          type="radio"
+                          name="cardio"
+                          value="with"
+                          checked={formData.cardio === 'with'}
+                          onChange={handleChange}
+                          className="sr-only"
+                        />
+                        <div className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                          formData.cardio === 'with'
+                            ? 'border-blue-500 bg-blue-50 text-blue-700'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}>
+                          <div className="font-semibold">With Cardio</div>
+                          <div className="text-sm text-gray-600">Includes cardio equipment access</div>
+                        </div>
+                      </label>
+                      <label className="relative">
+                        <input
+                          type="radio"
+                          name="cardio"
+                          value="without"
+                          checked={formData.cardio === 'without'}
+                          onChange={handleChange}
+                          className="sr-only"
+                        />
+                        <div className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                          formData.cardio === 'without'
+                            ? 'border-blue-500 bg-blue-50 text-blue-700'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}>
+                          <div className="font-semibold">Without Cardio</div>
+                          <div className="text-sm text-gray-600">Basic gym equipment only</div>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
                   {/* Package Radio Buttons */}
                   <div className="mb-2 col-span-2">
                     <label className="block text-gray-700 font-semibold mb-1 flex items-center gap-2">
                       <FaWallet /> Package
                     </label>
                     <div className="grid grid-cols-4 gap-2">
-                      {["1", "3", "6", "12"].map((pkg) => (
+                      {['1', '3', '6', '12'].map((pkg) => (
                         <label key={pkg} className="flex items-center text-gray-700 font-medium">
                           <input
                             type="radio"
@@ -610,7 +621,7 @@ const EditForm = ({ member, handleClose }) => {
                             onChange={handleChange}
                             className="mr-2 accent-blue-500"
                           />
-                          {pkg} Month{pkg !== "1" && "s"}
+                          {pkg} Month{pkg !== '1' && 's'}
                         </label>
                       ))}
                     </div>
@@ -660,7 +671,7 @@ const EditForm = ({ member, handleClose }) => {
                       type="number"
                       id="package_amount"
                       name="package_amount"
-                      value={packageAmount}
+                      value={formData.package_amount}
                       onChange={handleChange}
                       className="border border-gray-300 p-2 w-full rounded-lg focus:outline-none focus:border-blue-400"
                       required
