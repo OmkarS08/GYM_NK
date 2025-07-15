@@ -63,12 +63,18 @@ const getMember = async (req, res) => {
 
         // Club transactions with members
         const membersWithTransactions = members.map(member => {
-            const memberTransactions = transactions.filter(
+            let memberTransactions = transactions.filter(
                 t => t.transaction_person_name === member.id
             );
+            // Sort by transaction_time_stamp descending
+            memberTransactions = memberTransactions.sort((a, b) => {
+                const aTime = a.transaction_time_stamp?._seconds || 0;
+                const bTime = b.transaction_time_stamp?._seconds || 0;
+                return bTime - aTime;
+            });
             return {
                 ...member,
-                transactions: memberTransactions // or latest: memberTransactions[0]
+                transactions: memberTransactions
             };
         });
 

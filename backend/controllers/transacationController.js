@@ -41,7 +41,8 @@ const getTransaction = async (req, res) => {
                 transaction_time_stamp: t.transaction_time_stamp?.toDate ? t.transaction_time_stamp.toDate().toISOString().slice(0, 19).replace('T', ' ') : '',
                 member_name: member.name || '',
                 member_package: member.package || '',
-                endDate: member.endDate || ''
+                endDate: member.endDate || '',
+                startDate: member.startDate || '' // <-- Add this line
             };
         });
         return res.json(transactions);
