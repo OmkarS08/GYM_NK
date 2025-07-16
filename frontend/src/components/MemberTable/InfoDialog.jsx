@@ -6,6 +6,7 @@ import HistoryModal from "./HistoryModal";
 
 const InfoDialog = ({ open, member, showAadhar, setShowAadhar, onClose }) => {
   const [showHistory, setShowHistory] = useState(false);
+  const [enlargeProfilePic, setEnlargeProfilePic] = useState(false);
 
   if (!open || !member) return null;
 
@@ -51,10 +52,12 @@ const InfoDialog = ({ open, member, showAadhar, setShowAadhar, onClose }) => {
               <motion.img
                 src={member.profilePicUrl}
                 alt="Profile"
-                className="w-24 h-24 rounded-full object-cover border-4 border-blue-200 shadow mb-2"
+                className="w-24 h-24 rounded-full object-cover border-4 border-blue-200 shadow mb-2 cursor-pointer"
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                onClick={() => setEnlargeProfilePic(true)}
+                title="Click to enlarge"
               />
             ) : (
               <FaUserCircle className="text-blue-500 mb-2" size={60} />
@@ -153,6 +156,42 @@ const InfoDialog = ({ open, member, showAadhar, setShowAadhar, onClose }) => {
           </div>
         </motion.div>
       </motion.div>
+
+      {/* Enlarged Profile Picture Modal */}
+      <AnimatePresence>
+        {enlargeProfilePic && (
+          <motion.div
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setEnlargeProfilePic(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 200, damping: 20 }}
+              className="relative"
+              onClick={e => e.stopPropagation()}
+            >
+              <button
+                className="absolute top-2 right-2 text-white bg-black/50 rounded-full p-1 hover:bg-black/80 z-10"
+                onClick={() => setEnlargeProfilePic(false)}
+                aria-label="Close enlarged photo"
+              >
+                <FaTimesCircle size={28} />
+              </button>
+              <img
+                src={member.profilePicUrl}
+                alt="Enlarged Profile"
+                className="max-w-[90vw] max-h-[80vh] rounded-2xl shadow-2xl border-4 border-blue-200 bg-white"
+                style={{ objectFit: 'contain' }}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </AnimatePresence>
   );
 };
