@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Swal from 'sweetalert2';
-import axios from 'axios';
+import api from '../../api/api';
 import logActivity from '../../globalFunction/ActivityLog';
 import { FaUser, FaLock, FaUserShield, FaUserTie, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -41,7 +41,7 @@ const AddStaffMember = ({ handleClose }) => {
       return;
     }
 
-    axios.post('http://http://localhost:8081/auth/register', {
+    api.post('/auth/register', {
       email,
       password,
       admin: admin === '1'

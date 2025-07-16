@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
-import axios from 'axios';
+import api from '../../api/api';
 import logActivity from '../../globalFunction/ActivityLog';
 import Swal from 'sweetalert2';
 
@@ -11,7 +11,7 @@ const SteamBathForm = ({ close }) => {
     const [members, setMembers] = useState([]);
 
     useEffect(() => {
-        axios.get(`http://http://localhost:8081/members/getOnlyMember`)
+        api.get(`/members/getOnlyMember`)
             .then(res => {
                 if (res.status === 200) {
                     setMembers(res.data);
@@ -36,7 +36,7 @@ const SteamBathForm = ({ close }) => {
         };
 
 
-        axios.post('http://http://localhost:8081/steamBath/addSteamBath', formData)
+        api.post('/steamBath/addSteamBath', formData)
             .then(res => {
                 if (res.status === 200) {
                     close(false);

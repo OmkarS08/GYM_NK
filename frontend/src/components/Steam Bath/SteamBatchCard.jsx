@@ -1,6 +1,6 @@
 import React from 'react';
 import Swal from 'sweetalert2';
-import axios from 'axios';
+import api from '../../api/api';
 import logActivity from '../../globalFunction/ActivityLog';
 
 const SteamBatchCard = ({ data }) => {
@@ -17,7 +17,7 @@ const SteamBatchCard = ({ data }) => {
       confirmButtonText: "Yes, delete it!"
     }).then((result) => {
       if (result.isConfirmed) {
-        axios.post(`http://http://localhost:8081/steamBath/deleteSteam/${id}`)
+        api.post(`/steamBath/deleteSteam/${id}`)
           .then(res => {
             if (res.status === 200) {
               Swal.fire({

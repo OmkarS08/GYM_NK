@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react'
 import Navbar from '../Navbar/Navbar'
 import SteamBathForm from './SteamBathForm'
 import SteamBatchCard from './SteamBatchCard'
-import axios from 'axios'
+import api from '../../api/api'
 const SteamBath = () => {
   const [steamBathFormOn, setSteamBathFromOn] = useState(false);
   const [steamBathData, setSteamBathData] = useState([]);
 
   useEffect(() => {
-    axios.get('http://http://localhost:8081/steamBath/getSteamData')
+    api.get('/steamBath/getSteamData')
       .then(res => {
         if (res.status === 200) {
           setSteamBathData(res.data)
