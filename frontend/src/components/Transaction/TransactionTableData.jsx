@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { useMemberDialog } from '../../context/MemberDialogContext';
+import Loader from '../Loader/Loader';
 
 const DeleteDialog = ({ open, onClose, onConfirm, loading }) => {
   const [password, setPassword] = useState('');
@@ -53,6 +54,7 @@ const TransactionTableData = ({ data, onDelete }) => {
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [deleteDialog, setDeleteDialog] = useState({ open: false, transaction: null });
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [showLoader, setShowLoader] = useState(false);
   const { openDialog } = useMemberDialog();
 
   const handleEditClick = (transaction) => setSelectedTransaction(transaction);
@@ -77,6 +79,7 @@ const TransactionTableData = ({ data, onDelete }) => {
 
   const handleConfirmDelete = async (password) => {
     setDeleteLoading(true);
+    setShowLoader(true);
     try {
       const adminEmail = localStorage.getItem('adminEmail');
       const verifyRes = await axios.post('http://localhost:8081/auth/verifyPassword', {
@@ -105,7 +108,12 @@ const TransactionTableData = ({ data, onDelete }) => {
         toast: true,
         position: 'top-end'
       });
+      setTimeout(() => {
+        setShowLoader(false);
+        window.location.reload();
+      }, 1600);
     } catch (err) {
+      setShowLoader(false);
       Swal.fire({
         icon: 'error',
         title: 'Error',
@@ -121,6 +129,7 @@ const TransactionTableData = ({ data, onDelete }) => {
 
   return (
     <>
+      {showLoader && <Loader text="Deleting transaction..." />}
       <AnimatePresence>
         {data.map((ele, index) => (
           <motion.tr

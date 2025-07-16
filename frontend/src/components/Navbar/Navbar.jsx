@@ -1,14 +1,13 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import logActivity from '../../globalFunction/ActivityLog'
 import Swal from 'sweetalert2'
 import { FaHome, FaUsers, FaUserPlus, FaUserTie, FaHotTub, FaBell, FaExchangeAlt, FaListAlt, FaCog, FaSignOutAlt, FaBars, FaTimes } from 'react-icons/fa'
 import { motion, AnimatePresence } from 'framer-motion'
 
-const Navbar = () => {
+const Navbar = ({ isOpen, onClose, onOpen }) => {
     const isAdmin = localStorage.getItem('admin') === 'true';
     const navigate = useNavigate()
-    const [isOpen, setIsOpen] = useState(false);
 
     const handleClick = (event) => {
         if (event.target.name === '') {
@@ -31,7 +30,7 @@ const Navbar = () => {
         }
         else {
             navigate(`/${event.target.name}`)
-            setIsOpen(false); // Close mobile menu on navigation
+            if (onClose) onClose(); // Close mobile menu on navigation
         }
     }
 
@@ -61,15 +60,11 @@ const Navbar = () => {
 
     return (
         <>
-            {/* Mobile Top Bar */}
-            <div className="flex md:hidden items-center justify-between bg-gray-900 h-16 px-4 shadow z-40">
-                <div className="flex items-center gap-2">
-                    <img className='mx-2' src="Logo2.jpeg" alt="logo" width="36" height="36" />
-                    <span className="text-white font-bold uppercase text-lg">Royal Fitness</span>
-                </div>
+            {/* Mobile Top Bar: Only hamburger button, no logo or title */}
+            <div className="flex md:hidden items-center h-14 px-2 shadow z-40">
                 <button
-                    className="text-white text-2xl focus:outline-none"
-                    onClick={() => setIsOpen(true)}
+                    className="text-gray-800 text-2xl focus:outline-none"
+                    onClick={onOpen}
                     aria-label="Open navigation menu"
                 >
                     <FaBars />
@@ -130,7 +125,7 @@ const Navbar = () => {
                         {/* Overlay */}
                         <div
                             className="absolute inset-0 bg-black bg-opacity-40 backdrop-blur-sm z-50"
-                            onClick={() => setIsOpen(false)}
+                            onClick={onClose}
                         />
                         {/* Slide-in Nav */}
                         <motion.div
@@ -147,7 +142,7 @@ const Navbar = () => {
                                 </div>
                                 <button
                                     className="text-white text-2xl focus:outline-none"
-                                    onClick={() => setIsOpen(false)}
+                                    onClick={onClose}
                                     aria-label="Close navigation menu"
                                 >
                                     <FaTimes />
