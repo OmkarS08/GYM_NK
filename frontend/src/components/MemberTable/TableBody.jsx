@@ -101,15 +101,32 @@ const TableBody = ({ data }) => {
             <td className="px-6 py-4 whitespace-nowrap">{ele.endDate}</td>
             <td className="px-6 py-4 whitespace-nowrap">
               {
-                new Date(ele.endDate) > new Date() ? (
-                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                    Active
-                  </span>
-                ) : (
-                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                    Inactive
-                  </span>
-                )}
+                (() => {
+                  const now = new Date();
+                  const endDate = new Date(ele.endDate);
+                  const threeMonthsAfterEnd = new Date(endDate);
+                  threeMonthsAfterEnd.setMonth(threeMonthsAfterEnd.getMonth() + 3);
+                  if (endDate > now) {
+                    return (
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                        Active
+                      </span>
+                    );
+                  } else if (now <= threeMonthsAfterEnd) {
+                    return (
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                        Inactive
+                      </span>
+                    );
+                  } else {
+                    return (
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-300 text-gray-800">
+                        Invalid
+                      </span>
+                    );
+                  }
+                })()
+              }
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
               <motion.button

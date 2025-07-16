@@ -11,6 +11,7 @@ const DashboardCompo = () => {
         inactive: 0,
         expiring: 0,
         revenue: 0,
+        invalid: 0,
     });
 
     useEffect(() => {
@@ -31,16 +32,19 @@ const DashboardCompo = () => {
                 console.error('Error fetching member count:', error);
             });
 
-        // Active/Inactive members
+        // Active/Inactive/Invalid members
         api.get('/members/getMember')
             .then(res => {
                 if (res.status === 200) {
                     const today = new Date();
-                    let active = 0, inactive = 0, expiring = 0;
+                    let active = 0, inactive = 0, expiring = 0, invalid = 0;
                     res.data.forEach(m => {
                         const end = new Date(m.endDate);
+                        const threeMonthsAfterEnd = new Date(end);
+                        threeMonthsAfterEnd.setMonth(threeMonthsAfterEnd.getMonth() + 3);
                         if (end >= today) active++;
-                        else inactive++;
+                        else if (today <= threeMonthsAfterEnd) inactive++;
+                        else invalid++;
                         // Expiring in next 7 days
                         const diff = (end - today) / (1000 * 60 * 60 * 24);
                         if (diff > 0 && diff <= 7) expiring++;
@@ -49,7 +53,8 @@ const DashboardCompo = () => {
                         ...prev,
                         active,
                         inactive,
-                        expiring
+                        expiring,
+                        invalid
                     }));
                 }
             })
@@ -85,7 +90,7 @@ const DashboardCompo = () => {
     };
 
     // Card data
-    const cards = [
+    const cardsRow1 = [
         {
             label: "Total Members",
             value: count.total,
@@ -104,6 +109,8 @@ const DashboardCompo = () => {
             icon: <FaFemale size={36} />,
             color: "bg-pink-400",
         },
+    ];
+    const cardsRow2 = [
         {
             label: "Active Members",
             value: count.active,
@@ -116,12 +123,38 @@ const DashboardCompo = () => {
             icon: <FaUserTimes size={36} />,
             color: "bg-gray-400",
         },
+        {
+            label: "Invalid Members",
+            value: count.invalid,
+            icon: <FaUserTimes size={36} />,
+            color: "bg-red-400",
+        },
     ];
 
     return (
         <div className="w-full">
-            <div className="grid grid-cols-1 gap-4 px-2 mt-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 sm:px-8">
-                {cards.map((card, i) => (
+            <div className="grid grid-cols-3 gap-4 px-2 mt-8 sm:px-8">
+                {cardsRow1.map((card, i) => (
+                    <motion.div
+                        key={card.label}
+                        className="flex items-center bg-white border rounded-xl overflow-hidden shadow hover:shadow-lg transition"
+                        custom={i}
+                        initial="hidden"
+                        animate="visible"
+                        variants={cardVariants}
+                    >
+                        <div className={`p-4 ${card.color} flex items-center justify-center`}>
+                            <span className="text-white">{card.icon}</span>
+                        </div>
+                        <div className="px-4 py-2 text-gray-700">
+                            <h3 className="text-xs tracking-wider font-semibold">{card.label}</h3>
+                            <p className="text-2xl font-bold">{card.value}</p>
+                        </div>
+                    </motion.div>
+                ))}
+            </div>
+            <div className="grid grid-cols-3 gap-4 px-2 mt-4 sm:px-8">
+                {cardsRow2.map((card, i) => (
                     <motion.div
                         key={card.label}
                         className="flex items-center bg-white border rounded-xl overflow-hidden shadow hover:shadow-lg transition"
