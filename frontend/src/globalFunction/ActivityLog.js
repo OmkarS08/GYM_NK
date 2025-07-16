@@ -1,9 +1,8 @@
-// LogActivity.js
-import axios from 'axios';
 
+import api from '../api/api';
 const logActivity = async (userId, activity) => {
     try {
-        const response = await axios.post('http://http://localhost:8081/activityLog/addActivity', {
+        const response = await api.post('/activityLog/addActivity', {
             user_id: userId,
             activity: activity
         });
