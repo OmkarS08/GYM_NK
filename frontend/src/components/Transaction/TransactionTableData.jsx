@@ -2,11 +2,10 @@ import React, { useState } from 'react';
 import TransactionEdit from './TransactionEdit';
 import { FaEdit, FaTrash, FaMoneyBillWave, FaMobileAlt } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
-import axios from 'axios';
 import Swal from 'sweetalert2';
 import { useMemberDialog } from '../../context/MemberDialogContext';
 import Loader from '../Loader/Loader';
-
+import  api from '../../api/api';
 const DeleteDialog = ({ open, onClose, onConfirm, loading }) => {
   const [password, setPassword] = useState('');
 
@@ -82,7 +81,7 @@ const TransactionTableData = ({ data, onDelete }) => {
     setShowLoader(true);
     try {
       const adminEmail = localStorage.getItem('adminEmail');
-      const verifyRes = await axios.post('http://localhost:8081/auth/verifyPassword', {
+      const verifyRes = await api.post('http://localhost:8081/auth/verifyPassword', {
         email: adminEmail,
         password
       });
@@ -92,7 +91,7 @@ const TransactionTableData = ({ data, onDelete }) => {
       }
 
       const transaction_id = deleteDialog.transaction.transaction_id;
-      await axios.delete(`http://localhost:8081/transaction/deleteTransaction/${transaction_id}`);
+      await api.delete(`http://localhost:8081/transaction/deleteTransaction/${transaction_id}`);
 
       // Instead of setData, call onDelete if provided
       if (onDelete) {
