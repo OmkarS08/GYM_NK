@@ -81,7 +81,7 @@ const TransactionTableData = ({ data, onDelete }) => {
     setShowLoader(true);
     try {
       const adminEmail = localStorage.getItem('adminEmail');
-      const verifyRes = await api.post('http://localhost:8081/auth/verifyPassword', {
+      const verifyRes = await api.post('/auth/verifyPassword', {
         email: adminEmail,
         password
       });
@@ -91,7 +91,7 @@ const TransactionTableData = ({ data, onDelete }) => {
       }
 
       const transaction_id = deleteDialog.transaction.transaction_id;
-      await api.delete(`http://localhost:8081/transaction/deleteTransaction/${transaction_id}`);
+      await api.delete(`/transaction/deleteTransaction/${transaction_id}`);
 
       // Instead of setData, call onDelete if provided
       if (onDelete) {
