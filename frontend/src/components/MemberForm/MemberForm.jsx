@@ -256,6 +256,37 @@ const MemberForm = () => {
           const transactionLogged = await logTransaction(res.data.memberId);
 
           if (transactionLogged) {
+            // Append initial membership history
+            const today = new Date();
+            const renewalDate = today.toISOString().slice(0, 10);
+            const packageName = `${formData.package}-Month Plan`;
+            const amount = packageAmount;
+            const staff = localStorage.getItem('loginName') || '';
+            const notes = 'Initial Membership - First Transaction';
+            
+            // Calculate end date based on package duration - using a more robust method
+            const startDate = new Date(formData.startDate);
+            const endDate = new Date(startDate);
+            endDate.setDate(1); // Set to first day of month to avoid day overflow
+            endDate.setMonth(endDate.getMonth() + parseInt(formData.package));
+            endDate.setDate(startDate.getDate()); // Set back to original day
+            
+            // If the resulting date is invalid (e.g., Feb 30), set to last day of month
+            if (isNaN(endDate.getTime())) {
+              endDate.setDate(0); // This sets to last day of previous month
+            }
+            
+            await api.post(`/members/appendRenewalHistory/${res.data.memberId}`, {
+              renewalDate,
+              packageName,
+              amount,
+              startDate: formData.startDate,
+              endDate: endDate.toISOString().slice(0, 10),
+              paymentMethod: formData.payment,
+              staff,
+              notes
+            });
+
             localStorage.setItem('showSuccessAlert', 'true');
             navigate('/Members');
             logActivity(localStorage.getItem('loginId'), `New Member Added--> ${formData.name}`);
