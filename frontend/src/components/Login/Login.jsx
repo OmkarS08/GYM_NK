@@ -5,6 +5,7 @@ import logActivity from '../../globalFunction/ActivityLog';
 import { FaUserCircle, FaLock, FaDumbbell } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import api from '../../api/api';
+import Loader from '../Loader/Loader';
 
 const Login = () => {
     const [values, setValues] = useState({ email: '', password: '' });
@@ -55,6 +56,7 @@ const Login = () => {
 
     return (
         <div className="w-screen min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-white to-blue-200 px-4">
+            {loading && <Loader text="Logging in..." />}
             <motion.div
                 initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
