@@ -13,8 +13,8 @@ const FeeStructure = () => {
     api.get('/package/getPackage')
       .then(res => {
         if (res.status === 200) {
-          // Sort by packageId ascending
-          const sorted = [...res.data].sort((a, b) => a.packageId - b.packageId);
+          // Sort: 0.5 (15 days) first, then 1, 3, 6
+          const sorted = [...res.data].sort((a, b) => a.packageMonth - b.packageMonth);
           setPackageData(sorted);
         } else {
           console.log(res.data);
@@ -115,7 +115,9 @@ const FeeStructure = () => {
                 transition={{ duration: 0.3 }}
               >
                 <td className="p-4 px-5 text-center font-semibold">{ele.packageId}</td>
-                <td className="p-4 px-5 text-center">{ele.packageMonth}</td>
+                <td className="p-4 px-5 text-center">
+                  {ele.packageMonth === 0.5 ? '15 Days' : `${ele.packageMonth} Month${ele.packageMonth !== 1 ? 's' : ''}`}
+                </td>
                 {/* With Cardio */}
                 <td className="p-4 px-5 text-center">
                   <div className="flex items-center justify-center gap-2">

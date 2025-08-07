@@ -259,7 +259,7 @@ const MemberForm = () => {
             // Append initial membership history
             const today = new Date();
             const renewalDate = today.toISOString().slice(0, 10);
-            const packageName = `${formData.package}-Month Plan`;
+            const packageName = formData.package === '0.5' ? '15-Days Plan' : `${formData.package}-Month Plan`;
             const amount = packageAmount;
             const staff = localStorage.getItem('loginName') || '';
             const notes = 'Initial Membership - First Transaction';
@@ -268,8 +268,14 @@ const MemberForm = () => {
             const startDate = new Date(formData.startDate);
             const endDate = new Date(startDate);
             endDate.setDate(1); // Set to first day of month to avoid day overflow
-            endDate.setMonth(endDate.getMonth() + parseInt(formData.package));
-            endDate.setDate(startDate.getDate()); // Set back to original day
+            endDate.setMonth(endDate.getMonth() + (formData.package === '0.5' ? 0 : parseInt(formData.package)));
+            
+            // If it's 15 days package, add 15 days instead
+            if (formData.package === '0.5') {
+                endDate.setDate(endDate.getDate() + 15);
+            } else {
+                endDate.setDate(startDate.getDate()); // Set back to original day
+            }
             
             // If the resulting date is invalid (e.g., Feb 30), set to last day of month
             if (isNaN(endDate.getTime())) {
@@ -528,7 +534,7 @@ const MemberForm = () => {
                   Package Duration *
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {[1, 3, 6, 12].map(month => (
+                  {[0.5, 1, 3, 6].map(month => (
                     <label key={month} className="relative">
                       <input
                         type="radio"
@@ -543,9 +549,11 @@ const MemberForm = () => {
                           ? 'border-blue-500 bg-blue-50 text-blue-700'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}>
-                        <div className="font-semibold">{month}</div>
+                        <div className="font-semibold">
+                          {month === 0.5 ? '15 Days' : month}
+                        </div>
                         <div className="text-sm text-gray-600">
-                          Month{month > 1 ? 's' : ''}
+                          {month === 0.5 ? 'Half Month' : month === 1 ? 'Month' : 'Months'}
                         </div>
                       </div>
                     </label>

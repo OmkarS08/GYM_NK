@@ -614,7 +614,7 @@ const EditForm = ({ member, handleClose }) => {
                       <FaWallet /> Package
                     </label>
                     <div className="grid grid-cols-4 gap-2">
-                      {['1', '3', '6', '12'].map((pkg) => (
+                      {['0.5', '1', '3', '6'].map((pkg) => (
                         <label key={pkg} className="flex items-center text-gray-700 font-medium">
                           <input
                             type="radio"
@@ -624,7 +624,7 @@ const EditForm = ({ member, handleClose }) => {
                             onChange={handleChange}
                             className="mr-2 accent-blue-500"
                           />
-                          {pkg} Month{pkg !== '1' && 's'}
+                          {pkg === '0.5' ? '15 Days' : `${pkg} Month${pkg !== '1' ? 's' : ''}`}
                         </label>
                       ))}
                     </div>

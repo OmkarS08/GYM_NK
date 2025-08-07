@@ -113,7 +113,7 @@ const RenewModal = ({ member, setRenewModalOpen, handleClose }) => {
                 // Append renewal history
                 const today = new Date();
                 const renewalDate = today.toISOString().slice(0, 10);
-                const packageName = `${selectedPackage}-Month Plan`;
+                const packageName = selectedPackage === '0.5' ? '15-Days Plan' : `${selectedPackage}-Month Plan`;
                 const amount = renewPackagePrice;
                 const staff = localStorage.getItem('loginName') || '';
                 const notes = '';
@@ -154,7 +154,7 @@ const RenewModal = ({ member, setRenewModalOpen, handleClose }) => {
                 <FaWallet /> Package
               </label>
               <div className="grid grid-cols-4 gap-2">
-                {["1", "3", "6", "12"].map((pkg) => (
+                {["0.5", "1", "3", "6"].map((pkg) => (
                   <label key={pkg} className="flex items-center text-gray-700 font-medium">
                     <input
                       type="radio"
@@ -164,7 +164,7 @@ const RenewModal = ({ member, setRenewModalOpen, handleClose }) => {
                       onChange={() => setSelectedPackage(pkg)}
                       className="mr-2 accent-blue-500"
                     />
-                    {pkg} Month{pkg !== "1" && "s"}
+                    {pkg === "0.5" ? "15 Days" : `${pkg} Month${pkg !== "1" ? "s" : ""}`}
                   </label>
                 ))}
               </div>
