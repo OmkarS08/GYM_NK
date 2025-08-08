@@ -4,9 +4,10 @@ import { useState } from 'react';
 import NotificationEndDateTable from './NotificationEndDateTable';
 import api from '../../api/api';
 import { motion } from 'framer-motion';
-
+import { AnimatePresence } from 'framer-motion';
+import HamburgerButton from '../HamburgerButton/HamburgerButton';
 const Notification = () => {
-
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [data, setData] = useState([]);
   const [packageExpiredData, setPackageExpiredData] = useState([]);
 
@@ -36,7 +37,16 @@ const Notification = () => {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      <Navbar />
+      <Navbar
+        isOpen={sidebarOpen}
+        onOpen={() => setSidebarOpen(true)}
+        onClose={() => setSidebarOpen(false)}
+      />
+      <AnimatePresence>
+        {!sidebarOpen && (
+          <HamburgerButton onClick={() => setSidebarOpen(true)} />
+        )}
+      </AnimatePresence>
       <div className="flex flex-col flex-1 overflow-y-auto">
         <div className="flex items-center justify-between h-16 bg-white border-b border-gray-200 ">
           <div className='flex-button-container'>

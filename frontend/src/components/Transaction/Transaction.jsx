@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import Navbar from '../Navbar/Navbar'
+import HamburgerButton from '../HamburgerButton/HamburgerButton'
 import TransactionCount from './TransactionCount'
 import TranasctionTable from './TranasctionTable'
 import { FaMoneyCheckAlt, FaFilter } from 'react-icons/fa'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import api from '../../api/api'
+
 const Transaction = () => {
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const [transData, setTransData] = useState([]);
     const [filteredData, setFilteredData] = useState([]);
     const [countData, setCountData] = useState(['']);
@@ -53,8 +56,17 @@ const Transaction = () => {
     }, [searchQuery, paymentFilter, transData]);
 
     return (
-        <div className="flex h-screen bg-gradient-to-br from-gray-100 to-blue-100">
-            <Navbar />
+        <div className="flex h-screen bg-gradient-to-br from-gray-100 to-blue-100 relative">
+            <Navbar
+                isOpen={sidebarOpen}
+                onOpen={() => setSidebarOpen(true)}
+                onClose={() => setSidebarOpen(false)}
+            />
+            <AnimatePresence>
+                {!sidebarOpen && (
+                    <HamburgerButton onClick={() => setSidebarOpen(true)} />
+                )}
+            </AnimatePresence>
             <div className="flex flex-col flex-1 overflow-y-auto">
                 <motion.div
                     className="flex items-center gap-3 h-16 bg-white border-b border-gray-200 px-6 shadow-sm"

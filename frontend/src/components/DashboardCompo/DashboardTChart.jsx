@@ -9,11 +9,9 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import api from '../../api/api'; // Adjust the import path as necessary
+import api from '../../api/api';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
-
-
 
 const DashboardTChart = () => {
   const [barChartData, setBarChartData] = useState({
@@ -66,37 +64,39 @@ const DashboardTChart = () => {
       })
       .catch(err => console.error(err));
   }, []);
-const options = {
-  responsive: true,
-  scales: {
-    x: {
-      grid: {
-        display: false,  // Remove x-axis grid lines
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        grid: {
+          display: false,  // Remove x-axis grid lines
+        }
+      },
+      y: {
+        grid: {
+          display: false,  // Remove y-axis grid lines
+        },
+        beginAtZero: true,  // Ensure y-axis starts at 0
       }
     },
-    y: {
-      grid: {
-        display: false,  // Remove y-axis grid lines
+    plugins: {
+      legend: {
+        display: true,  // Show legend
       },
-      beginAtZero: true,  // Ensure y-axis starts at 0
-    }
-  },
-  plugins: {
-    legend: {
-      display: true,  // Show legend
+      tooltip: {
+        enabled: true,  // Enable tooltips on hover
+      },
     },
-    tooltip: {
-      enabled: true,  // Enable tooltips on hover
-    },
-  },
-}
+  };
+
   return (
-    <div className='bg-white  px-10 mx-2 py-9 my-8'>
-      <h2 className='mx-auto'>Member Growth</h2>
-      <Bar
-        data={barChartData}
-        options={options}
-      />
+    <div className="bg-white px-2 sm:px-6 py-4 my-4 flex flex-col items-center justify-center w-full">
+      <h2 className="mx-auto mb-2 text-base sm:text-lg font-semibold">Member Growth</h2>
+      <div className="w-[220px] h-[180px] sm:w-[340px] sm:h-[260px] md:w-[420px] md:h-[320px]">
+        <Bar data={barChartData} options={options} />
+      </div>
     </div>
   );
 };

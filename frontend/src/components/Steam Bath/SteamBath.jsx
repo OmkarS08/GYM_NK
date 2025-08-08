@@ -3,10 +3,12 @@ import Navbar from '../Navbar/Navbar'
 import SteamBathForm from './SteamBathForm'
 import SteamBatchCard from './SteamBatchCard'
 import api from '../../api/api'
+import HamburgerButton from '../HamburgerButton/HamburgerButton'
+import { AnimatePresence } from 'framer-motion'
 const SteamBath = () => {
   const [steamBathFormOn, setSteamBathFromOn] = useState(false);
   const [steamBathData, setSteamBathData] = useState([]);
-
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   useEffect(() => {
     api.get('/steamBath/getSteamData')
       .then(res => {
@@ -23,7 +25,16 @@ const SteamBath = () => {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      <Navbar />
+       <Navbar
+                isOpen={sidebarOpen}
+                onOpen={() => setSidebarOpen(true)}
+                onClose={() => setSidebarOpen(false)}
+            />
+            <AnimatePresence>
+                {!sidebarOpen && (
+                    <HamburgerButton onClick={() => setSidebarOpen(true)} />
+                )}
+            </AnimatePresence>
       <div className="flex flex-col flex-1 overflow-y-auto">
         <div className="flex items-center justify-between h-16 bg-white border-b border-gray-200">
         </div>

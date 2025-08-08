@@ -140,6 +140,7 @@ const RenewModal = ({ member, setRenewModalOpen, handleClose }) => {
                   });
                   setRenewModalOpen(false);
                   handleClose();
+                  window.location.reload(); // <-- Add this line to refresh the page
                 }
               }
             })
@@ -297,4 +298,4 @@ const RenewModal = ({ member, setRenewModalOpen, handleClose }) => {
   );
 };
 
-export default RenewModal; 
+export default RenewModal;

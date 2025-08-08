@@ -2,11 +2,11 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import logActivity from '../../globalFunction/ActivityLog'
 import Swal from 'sweetalert2'
-import { FaHome, FaUsers, FaUserPlus, FaUserTie, FaHotTub, FaBell, FaExchangeAlt, FaListAlt, FaCog, FaSignOutAlt, FaBars, FaTimes } from 'react-icons/fa'
 import { motion, AnimatePresence } from 'framer-motion'
-
+import { navLinks } from '../../globalFunction/NavLinks'
+import { FaSignOutAlt, FaTimes } from 'react-icons/fa'
 const Navbar = ({ isOpen, onClose, onOpen }) => {
-    const isAdmin = localStorage.getItem('admin') === 'true';
+
     const navigate = useNavigate()
 
     const handleClick = (event) => {
@@ -45,31 +45,10 @@ const Navbar = ({ isOpen, onClose, onOpen }) => {
         hover: { scale: 1.05, backgroundColor: "#374151" }
     };
 
-    // Nav links (to avoid repetition)
-    const navLinks = [
-        { name: 'Dashboard', label: 'Home', icon: <FaHome className="mx-2 text-xl" /> },
-        { name: 'Members', label: 'Member', icon: <FaUsers className="mx-2 text-xl" /> },
-        { name: 'AddMember', label: 'Add Member', icon: <FaUserPlus className="mx-2 text-xl" /> },
-        ...(isAdmin ? [{ name: 'StaffMember', label: 'Staff Member', icon: <FaUserTie className="mx-2 text-xl" /> }] : []),
-        { name: 'steamBath', label: 'Steam Bath', icon: <FaHotTub className="mx-2 text-xl" /> },
-        { name: 'Notification', label: 'Notification', icon: <FaBell className="mx-2 text-xl" /> },
-        { name: 'Transaction', label: 'Transaction', icon: <FaExchangeAlt className="mx-2 text-xl" /> },
-        { name: 'ActivityLogs', label: 'Activity Logs', icon: <FaListAlt className="mx-2 text-xl" /> },
-        ...(isAdmin ? [{ name: 'Setting', label: 'Setting', icon: <FaCog className="mx-2 text-xl" /> }] : []),
-    ];
+
 
     return (
         <>
-            {/* Mobile Top Bar: Only hamburger button, no logo or title */}
-            <div className="flex md:hidden items-center h-14 px-2 shadow z-40">
-                <button
-                    className="text-gray-800 text-2xl focus:outline-none"
-                    onClick={onOpen}
-                    aria-label="Open navigation menu"
-                >
-                    <FaBars />
-                </button>
-            </div>
 
             {/* Desktop Sidebar */}
             <motion.div

@@ -4,9 +4,12 @@ import ActivityLogTable from './ActivityLogTable'
 import { FaHistory } from 'react-icons/fa'
 import { motion } from 'framer-motion'
 import api from '../../api/api'
+import HamburgerButton from '../HamburgerButton/HamburgerButton'
+import { AnimatePresence } from 'framer-motion'
 const ActivityLog = () => {
     const [data, setData] = useState(null)
     const [search, setSearch] = useState('');
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
         api.get('/activityLog/getActivity')
@@ -32,7 +35,16 @@ const ActivityLog = () => {
 
     return (
         <div className="flex h-screen bg-gradient-to-br from-gray-100 to-blue-100">
-            <Navbar />
+            <Navbar
+                isOpen={sidebarOpen}
+                onOpen={() => setSidebarOpen(true)}
+                onClose={() => setSidebarOpen(false)}
+            />
+            <AnimatePresence>
+                {!sidebarOpen && (
+                    <HamburgerButton onClick={() => setSidebarOpen(true)} />
+                )}
+            </AnimatePresence>
             <div className="flex flex-col flex-1 overflow-y-auto">
                 <motion.div
                     className="flex items-center gap-3 h-16 bg-white border-b border-gray-200 px-6 shadow-sm"

@@ -7,6 +7,7 @@ import HistoryModal from "./HistoryModal";
 const InfoDialog = ({ open, member, showAadhar, setShowAadhar, onClose }) => {
   const [showHistory, setShowHistory] = useState(false);
   const [enlargeProfilePic, setEnlargeProfilePic] = useState(false);
+  const [enlargeAadhar, setEnlargeAadhar] = useState({ url: '', label: '' });
 
   if (!open || !member) return null;
 
@@ -91,14 +92,18 @@ const InfoDialog = ({ open, member, showAadhar, setShowAadhar, onClose }) => {
                   <img
                     src={member.aadharFrontUrl}
                     alt="Aadhar Front"
-                    className="w-64 max-w-full h-40 object-contain rounded-lg border shadow"
+                    className="w-64 max-w-full h-40 object-contain rounded-lg border shadow cursor-pointer"
+                    title="Click to enlarge"
+                    onClick={() => setEnlargeAadhar({ url: member.aadharFrontUrl, label: 'Aadhar Front' })}
                   />
                 )}
                 {member.aadharBackUrl && (
                   <img
                     src={member.aadharBackUrl}
                     alt="Aadhar Back"
-                    className="w-64 max-w-full h-40 object-contain rounded-lg border shadow"
+                    className="w-64 max-w-full h-40 object-contain rounded-lg border shadow cursor-pointer"
+                    title="Click to enlarge"
+                    onClick={() => setEnlargeAadhar({ url: member.aadharBackUrl, label: 'Aadhar Back' })}
                   />
                 )}
               </motion.div>
@@ -192,8 +197,45 @@ const InfoDialog = ({ open, member, showAadhar, setShowAadhar, onClose }) => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Enlarged Aadhar Modal */}
+      <AnimatePresence>
+        {enlargeAadhar.url && (
+          <motion.div
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setEnlargeAadhar({ url: '', label: '' })}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 200, damping: 20 }}
+              className="relative"
+              onClick={e => e.stopPropagation()}
+            >
+              <button
+                className="absolute top-2 right-2 text-white bg-black/50 rounded-full p-1 hover:bg-black/80 z-10"
+                onClick={() => setEnlargeAadhar({ url: '', label: '' })}
+                aria-label="Close enlarged Aadhar"
+              >
+                <FaTimesCircle size={28} />
+              </button>
+              <img
+                src={enlargeAadhar.url}
+                alt={enlargeAadhar.label}
+                className="max-w-[90vw] max-h-[80vh] rounded-2xl shadow-2xl border-4 border-blue-200 bg-white"
+                style={{ objectFit: 'contain' }}
+              />
+              <div className="text-center text-white font-semibold mt-2">{enlargeAadhar.label}</div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </AnimatePresence>
   );
 };
 
-export default InfoDialog; 
+export default InfoDialog;

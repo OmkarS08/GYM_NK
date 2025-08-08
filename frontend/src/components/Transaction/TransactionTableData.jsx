@@ -146,10 +146,20 @@ const TransactionTableData = ({ data, onDelete }) => {
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-gray-600">{ele.member_package} months</td>
             <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-              {ele.startDate ? new Date(ele.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}
+              {ele.startDate
+                ? new Date(ele.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                : ''}
             </td>
-            <td className="px-6 py-4 whitespace-nowrap text-gray-600">{ele.endDate ? new Date(ele.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}</td>
-            <td className="px-6 py-4 whitespace-nowrap text-gray-500">{ele.transaction_time_stamp}</td>
+            <td className="px-6 py-4 whitespace-nowrap text-gray-600">
+              {ele.endDate
+                ? new Date(ele.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                : ''}
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+              {ele.transaction_time_stamp
+                ? new Date(ele.transaction_time_stamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                : ''}
+            </td>
             <td className="px-6 py-4 whitespace-nowrap text-gray-700">{ele.transaction_package_amount}</td>
             <td className="px-6 py-4 whitespace-nowrap text-green-600 font-semibold">{ele.transaction_amount_paid}</td>
             <td className="px-6 py-4 whitespace-nowrap text-red-500 font-semibold">{ele.transaction_amount_due}</td>

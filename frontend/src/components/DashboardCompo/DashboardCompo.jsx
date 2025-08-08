@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { FaUsers, FaMale, FaFemale, FaUserCheck, FaUserTimes } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import api from '../../api/api';
+
 const DashboardCompo = () => {
     const [count, setCount] = useState({
         female: 0,
@@ -133,7 +134,8 @@ const DashboardCompo = () => {
 
     return (
         <div className="w-full">
-            <div className="grid grid-cols-3 gap-4 px-2 mt-8 sm:px-8">
+            {/* Responsive grid: 1 column on mobile, 3 on md+ */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-2 mt-8 sm:px-8">
                 {cardsRow1.map((card, i) => (
                     <motion.div
                         key={card.label}
@@ -153,7 +155,7 @@ const DashboardCompo = () => {
                     </motion.div>
                 ))}
             </div>
-            <div className="grid grid-cols-3 gap-4 px-2 mt-4 sm:px-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-2 mt-4 sm:px-8">
                 {cardsRow2.map((card, i) => (
                     <motion.div
                         key={card.label}
