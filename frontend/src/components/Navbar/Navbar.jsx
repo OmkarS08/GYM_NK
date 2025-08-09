@@ -3,8 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import logActivity from '../../globalFunction/ActivityLog'
 import Swal from 'sweetalert2'
 import { motion, AnimatePresence } from 'framer-motion'
-import { navLinks } from '../../globalFunction/NavLinks'
+import { getNavLinks } from '../../globalFunction/NavLinks';
 import { FaSignOutAlt, FaTimes } from 'react-icons/fa'
+
+const navLinks = getNavLinks();
+
 const Navbar = ({ isOpen, onClose, onOpen }) => {
 
     const navigate = useNavigate()
