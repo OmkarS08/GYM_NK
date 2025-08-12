@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Swal from 'sweetalert2';
-import axios from 'axios';
 import logActivity from '../../globalFunction/ActivityLog';
+import api from '../../api/api';
 
 const TransactionEdit = ({ transaction, handleClose }) => {
   const [amountPaid, setAmountPaid] = useState(transaction.transaction_amount_paid);
@@ -15,7 +15,7 @@ const TransactionEdit = ({ transaction, handleClose }) => {
 
   const handleEditSubmit = (e) => {
     e.preventDefault();
-    axios.post(`http://localhost:8081/transaction/updateTransaction/${transaction.transaction_id}`, {
+    api.post(`/transaction/updateTransaction/${transaction.transaction_id}`, {
       transaction_amount_paid: amountPaid,
       transaction_amount_due: amountDue
     })
